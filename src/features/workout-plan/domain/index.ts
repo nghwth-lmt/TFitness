@@ -189,3 +189,9 @@ export type SetLog = {
   /** epoch ms */
   loggedAt: number;
 };
+
+/** What the engine needs from storage to plan the next session. */
+export type History = {
+  sessions: Session[];
+  setLogs: SetLog[];
+};

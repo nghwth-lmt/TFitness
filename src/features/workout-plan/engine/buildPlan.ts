@@ -1,7 +1,7 @@
 import { MIN_TRAINING_DAYS } from "../config";
 import { LEVELS, type Exercise, type Plan, type Profile, type SessionTemplate, type SplitId, type TemplateSlot } from "../domain";
 import { availableExercises, levelAtMost } from "./availability";
-import { createRng, pickOne } from "./prng";
+import { createRng } from "./prng";
 import { trimTemplates } from "./trim";
 import { SPLITS, TEMPLATE_KEYS, splitForDays, type SlotSpec } from "./splits";
 

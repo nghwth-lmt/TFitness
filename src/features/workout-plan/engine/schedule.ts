@@ -1,19 +1,33 @@
 import { BLOCK_WEEKS } from "../config";
-import { EXERCISES } from "../data/exercises";
+import { EXERCISES, getExercise } from "../data/exercises";
 import type { Exercise, History, Plan, Session, SessionDraft } from "../domain";
 import { draftFromTemplate } from "./draft";
 import { selectTemplates } from "./buildPlan";
+import { progressionFromHistory } from "./progression";
 import { trimTemplates } from "./trim";
 
 /**
  * Next session = the template at `plan.cursor` (W02). The loop does not look at dates, so a rest
- * day or a missed week never skips a template. Weights are attached from `history` by WL-06.
+ * day or a missed week never skips a template. Weights come from the completed history (WL-06).
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function nextSession(plan: Plan, _history: History): SessionDraft {
+export function nextSession(plan: Plan, history: History, catalog: readonly Exercise[] = EXERCISES): SessionDraft {
   if (plan.templates.length === 0) throw new RangeError("Plan has no templates");
   const template = plan.templates[plan.cursor % plan.templates.length];
-  return draftFromTemplate(plan, template);
+  const draft = draftFromTemplate(plan, template);
+  return {
+    ...draft,
+    exercises: draft.exercises.map((e) => {
+      const ex = catalog.find((c) => c.id === e.exerciseId) ?? getExercise(e.exerciseId);
+      if (!ex) return e;
+      const p = progressionFromHistory(e.exerciseId, history, e.repRange, ex.loadType, plan.profile.dumbbellRange);
+      return {
+        ...e,
+        targetKg: p.targetKg,
+        ...(p.targetReps !== undefined ? { targetReps: p.targetReps } : {}),
+        ...(p.hint !== undefined ? { hint: p.hint } : {}),
+      };
+    }),
+  };
 }
 
 /** `completed` sessions of this plan. `abandoned` and `in_progress` never count. */

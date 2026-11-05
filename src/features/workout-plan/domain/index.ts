@@ -150,6 +150,8 @@ export type SessionExercise = {
   repRange: RepRange;
   /** null = first time: the user picks a weight. */
   targetKg: number | null;
+  /** Bodyweight exercises progress by reps; absent for loaded exercises. */
+  targetReps?: number;
   restSec: number;
   hint?: string;
 };

@@ -2,6 +2,7 @@ import { MIN_TRAINING_DAYS } from "../config";
 import { LEVELS, type Exercise, type Plan, type Profile, type SessionTemplate, type SplitId, type TemplateSlot } from "../domain";
 import { availableExercises, levelAtMost } from "./availability";
 import { createRng, pickOne } from "./prng";
+import { trimTemplates } from "./trim";
 import { SPLITS, TEMPLATE_KEYS, splitForDays, type SlotSpec } from "./splits";
 
 export type SelectOptions = {
@@ -113,7 +114,7 @@ export function buildPlan(
     status: "active",
     split,
     profile,
-    templates: selectTemplates(profile, catalog, split, seed, 0),
+    templates: trimTemplates(selectTemplates(profile, catalog, split, seed, 0), profile),
     blockIndex: 0,
     blockStartedAtCompletedCount: 0,
     cursor: 0,

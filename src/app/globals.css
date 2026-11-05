@@ -3,7 +3,7 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* Spotter design tokens v1 (đề xuất, chờ duyệt G0)
+/* Spotter design tokens v1.1 · G0 duyệt 05/11/2026 (Q1–Q4 theo mặc định đề xuất)
    Lớp 1 primitive → lớp 2 semantic (tên shadcn/ui) → lớp 3 theo vai (radius). */
 :root {
   /* Primitive: brand orange, 5 sắc độ */
@@ -40,6 +40,7 @@
   --primary-active: #c2410c;  /* brand-700 */
   --primary-subtle: #ffedd5;  /* brand-100 */
   --primary-disabled: #fdba74;  /* brand-300 */
+  --primary-text: #c2410c;  /* brand-700 · G0 Q1: chữ/link màu brand trên nền sáng, 4,96:1 */
   --secondary: #f5f5f4;  /* stone-100 */
   --secondary-foreground: #1c1917;  /* stone-900 */
   --muted: #f5f5f4;  /* stone-100 */
@@ -51,7 +52,7 @@
   --success: #15803d;  /* green-700 */
   --success-foreground: #ffffff;  /* stone-0 */
   --border: #e7e5e4;  /* stone-200 */
-  --input: #e7e5e4;  /* stone-200 */
+  --input: #78716c;  /* stone-500 · G0 Q2: viền ô nhập 4,8:1 */
   --ring: #ea580c;  /* brand-600 */
   --chart-1: #f97316;  /* brand-500 */
   --chart-2: #16a34a;  /* green-600 */
@@ -84,6 +85,7 @@
   --primary-active: #fdba74;  /* brand-300 */
   --primary-subtle: #431407;
   --primary-disabled: #9a3412;
+  --primary-text: #f97316;  /* brand-500 · 7,05:1 trên nền tối */
   --secondary: #292524;  /* stone-800 */
   --secondary-foreground: #fafaf9;  /* stone-50 */
   --muted: #292524;  /* stone-800 */
@@ -91,11 +93,11 @@
   --accent: #431407;
   --accent-foreground: #fafaf9;  /* stone-50 */
   --destructive: #ef4444;
-  --destructive-foreground: #0c0a09;  /* stone-950 */
+  --destructive-foreground: #ffffff;  /* G0 Q4: khớp shadcn text-white */
   --success: #22c55e;
   --success-foreground: #0c0a09;  /* stone-950 */
   --border: #292524;  /* stone-800 */
-  --input: #44403c;
+  --input: #78716c;  /* G0 Q2: 3,65:1 trên thẻ tối */
   --ring: #fb923c;
 }
 
@@ -112,6 +114,7 @@
   --color-primary-active: var(--primary-active);
   --color-primary-subtle: var(--primary-subtle);
   --color-primary-disabled: var(--primary-disabled);
+  --color-primary-text: var(--primary-text);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);

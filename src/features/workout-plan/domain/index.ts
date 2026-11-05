@@ -110,6 +110,8 @@ export type TemplateSlot = {
   pattern: Pattern;
   role: SlotRole;
   exerciseId: string;
+  /** Set count override written by the time-budget trim (WL-04). Absent = use the level default. */
+  sets?: number;
 };
 
 export type SessionTemplate = {

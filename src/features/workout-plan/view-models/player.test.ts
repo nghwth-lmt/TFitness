@@ -18,7 +18,7 @@ const T0 = 1_700_000_000_000;
 const profile: Profile = {
   trainingDays: ["mon", "wed", "fri"],
   sessionMinutes: 60,
-  equipment: ["barbell", "rack", "bench", "dumbbells"],
+  equipment: ["barbell", "squat_rack", "adjustable_bench", "dumbbells"],
   dumbbellRange: { min: 4, max: 24, step: 4 },
   goal: "build_muscle",
   level: "intermediate",

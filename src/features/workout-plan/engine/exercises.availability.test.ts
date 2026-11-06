@@ -4,7 +4,7 @@ import { EQUIPMENT_IDS, LEVELS, PATTERNS, type EquipmentId, type Pattern } from 
 import { availableExercises, isDoable, levelAtMost } from "./availability";
 
 const NO_EQUIPMENT: EquipmentId[] = [];
-const DB_BENCH: EquipmentId[] = ["dumbbells", "bench"];
+const DB_BENCH: EquipmentId[] = ["dumbbells", "adjustable_bench"];
 const FULL_GYM: EquipmentId[] = [...EQUIPMENT_IDS];
 const SETS: Array<[string, EquipmentId[]]> = [
   ["No equipment", NO_EQUIPMENT],
@@ -42,9 +42,9 @@ describe("isDoable (AC03)", () => {
   it("treats [[]] as no equipment and OR-of-AND correctly", () => {
     const base = EXERCISES[0];
     expect(isDoable({ ...base, equipment: [[]] }, [])).toBe(true);
-    expect(isDoable({ ...base, equipment: [["barbell", "rack"]] }, ["barbell"])).toBe(false);
-    expect(isDoable({ ...base, equipment: [["barbell", "rack"]] }, ["barbell", "rack"])).toBe(true);
-    expect(isDoable({ ...base, equipment: [["cable"], ["machines"]] }, ["machines"])).toBe(true);
+    expect(isDoable({ ...base, equipment: [["barbell", "squat_rack"]] }, ["barbell"])).toBe(false);
+    expect(isDoable({ ...base, equipment: [["barbell", "squat_rack"]] }, ["barbell", "squat_rack"])).toBe(true);
+    expect(isDoable({ ...base, equipment: [["cable_station"], ["leg_press"]] }, ["leg_press"])).toBe(true);
   });
 
   it("Dumbbells 5-20kg + Bench never yields barbell, machine or cable work", () => {

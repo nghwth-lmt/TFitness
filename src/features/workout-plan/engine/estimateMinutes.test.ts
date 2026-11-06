@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { EXERCISES } from "../data/exercises";
-import { GOALS, LEVELS, SESSION_MINUTES, type Profile, type SessionDraft, type Weekday } from "../domain";
+import { EQUIPMENT_IDS, GOALS, LEVELS, SESSION_MINUTES, type Profile, type SessionDraft, type Weekday } from "../domain";
 import { REST_SEC, SETS, REP_RANGES, WARMUP_MINUTES, SEC_PER_REP } from "../config";
 import { buildPlan } from "./buildPlan";
 import { draftFromTemplate, prescribe } from "./draft";
@@ -57,7 +57,7 @@ describe("time budget trim on buildPlan (AC04 matrix)", () => {
           const profile: Profile = {
             trainingDays: days,
             sessionMinutes: minutes,
-            equipment: ["barbell", "rack", "dumbbells", "bench", "cable", "machines", "pullup_bar", "bands"],
+            equipment: [...EQUIPMENT_IDS],
             goal,
             level,
             avoid: [],
@@ -76,7 +76,7 @@ describe("time budget trim on buildPlan (AC04 matrix)", () => {
     const profile: Profile = {
       trainingDays: days,
       sessionMinutes: 45,
-      equipment: ["barbell", "rack", "dumbbells", "bench", "cable", "machines", "pullup_bar", "bands"],
+      equipment: [...EQUIPMENT_IDS],
       goal: "build_muscle",
       level: "intermediate",
       avoid: [],
@@ -93,7 +93,7 @@ describe("time budget trim on buildPlan (AC04 matrix)", () => {
     const profile: Profile = {
       trainingDays: days,
       sessionMinutes: 90,
-      equipment: ["barbell", "rack", "dumbbells", "bench", "cable", "machines", "pullup_bar", "bands"],
+      equipment: [...EQUIPMENT_IDS],
       goal: "lose_fat",
       level: "beginner",
       avoid: [],

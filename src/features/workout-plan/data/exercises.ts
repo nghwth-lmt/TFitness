@@ -1,3 +1,4 @@
+import { LEGACY_EQUIPMENT_MAP } from "../domain/equipment";
 import type {
   BodyArea,
   EquipmentId,
@@ -18,7 +19,7 @@ type Row = [
   name: string,
   pattern: Pattern,
   role: ExerciseRole,
-  equipment: EquipmentId[][],
+  equipment: string[][],
   muscles: Muscle[],
   level: Level,
   avoidFlags: BodyArea[],
@@ -26,7 +27,14 @@ type Row = [
   cue: string,
 ];
 
-const NONE: EquipmentId[][] = [[]];
+const NONE: string[][] = [[]];
+
+/** Rows below still use the 8 old ids (replaced by the imported catalog in WL-12). A tick of "machines" means any machine, so it becomes alternatives. */
+function toNewIds(alternatives: string[][]): EquipmentId[][] {
+  return alternatives.flatMap((and) =>
+    and.reduce<EquipmentId[][]>((acc, id) => acc.flatMap((prefix) => LEGACY_EQUIPMENT_MAP[id].map((n) => [...prefix, n])), [[]]),
+  );
+}
 
 const rows: Row[] = [
   // squat
@@ -113,7 +121,7 @@ export const EXERCISES: readonly Exercise[] = rows.map(
     name,
     pattern,
     role,
-    equipment,
+    equipment: toNewIds(equipment),
     muscles,
     level,
     avoidFlags,

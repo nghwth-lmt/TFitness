@@ -147,18 +147,18 @@ describe("getTodayVM priority: Resume > Next > New block (PRD section 5)", () =>
 });
 
 describe("What do I have today? (AC10) on the view model", () => {
-  const eq: EquipmentId[] = ["barbell", "rack", "dumbbells", "bench"];
+  const eq: EquipmentId[] = ["barbell", "squat_rack", "dumbbells", "adjustable_bench"];
   it("removing the bench swaps bench lifts for today only and labels it", () => {
     const p = profile({ equipment: eq });
     const b = base(p);
     const normal = buildTodayVM(b);
-    const noBenchEq: EquipmentId[] = eq.filter((e) => e !== "bench");
+    const noBenchEq: EquipmentId[] = eq.filter((e) => e !== "adjustable_bench");
     const noBench = buildTodayVM({ ...b, todayEquipment: noBenchEq });
     expect(normal.kind === "next" && normal.adjustedForToday).toBe(false);
     expect(noBench.kind).toBe("next");
     if (noBench.kind !== "next" || normal.kind !== "next") return;
     for (const row of noBench.exercises) expect(getExercise(row.exerciseId)!.equipment.some((and) => and.every((x) => noBenchEq.includes(x)))).toBe(true);
-    if (normal.draft.exercises.some((e) => getExercise(e.exerciseId)!.equipment.every((and) => and.includes("bench")))) {
+    if (normal.draft.exercises.some((e) => getExercise(e.exerciseId)!.equipment.every((and) => and.includes("adjustable_bench")))) {
       expect(noBench.adjustedForToday).toBe(true);
     }
     // the plan itself is untouched

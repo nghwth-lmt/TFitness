@@ -24,7 +24,7 @@ function profile(over: Partial<Profile> = {}): Profile {
 }
 
 const ex = (id: string): Exercise => getExercise(id)!;
-const needsBench = (id: string) => ex(id).equipment.every((and) => and.includes("bench"));
+const needsBench = (id: string) => ex(id).equipment.every((and) => and.includes("adjustable_bench"));
 
 /** A draft whose exercises are exactly `ids`, on a plan for `p`. */
 function draftOf(ids: string[], p: Profile = profile()): SessionDraft {
@@ -46,7 +46,7 @@ function draftOf(ids: string[], p: Profile = profile()): SessionDraft {
 
 describe("adjustForToday (AC10, W05)", () => {
   const gym = FULL;
-  const noBench = FULL.filter((e) => e !== "bench");
+  const noBench = FULL.filter((e) => e !== "adjustable_bench");
 
   it("replaces every bench exercise with one of the same pattern and leaves the rest alone", () => {
     const d = draftOf(["bench_press", "back_squat", "incline_db_press", "db_lateral_raise"]);
@@ -71,12 +71,12 @@ describe("adjustForToday (AC10, W05)", () => {
   });
 
   it("does not touch the original draft or the plan: the next session still has bench lifts (AC10)", () => {
-    const p = profile({ equipment: ["barbell", "rack", "dumbbells", "bench"] });
+    const p = profile({ equipment: ["barbell", "squat_rack", "dumbbells", "adjustable_bench"] });
     const plan = buildPlan(p, EXERCISES, 2);
     const original = nextSession(plan, EMPTY);
     const snapDraft = JSON.stringify(original);
     const snapPlan = JSON.stringify(plan);
-    adjustForToday(original, ["barbell", "rack", "dumbbells"], EXERCISES, p);
+    adjustForToday(original, ["barbell", "squat_rack", "dumbbells"], EXERCISES, p);
     expect(JSON.stringify(original)).toBe(snapDraft);
     expect(JSON.stringify(plan)).toBe(snapPlan);
     expect(nextSession(plan, EMPTY)).toEqual(original);
@@ -106,7 +106,7 @@ describe("adjustForToday (AC10, W05)", () => {
   });
 
   it("respects avoid areas and level when choosing a substitute", () => {
-    const p = profile({ avoid: ["knee", "shoulder"], level: "beginner", equipment: ["dumbbells", "bench"] });
+    const p = profile({ avoid: ["knee", "shoulder"], level: "beginner", equipment: ["dumbbells", "adjustable_bench"] });
     const d = draftOf(["goblet_squat", "db_bench_press"], p);
     const out = adjustForToday(d, [], EXERCISES, p);
     for (const e of out.exercises) {
@@ -153,7 +153,7 @@ describe("adjustForToday (AC10, W05)", () => {
 });
 
 describe("swapCandidates and applySwap (AC11)", () => {
-  const p = profile({ equipment: ["dumbbells", "bench"] });
+  const p = profile({ equipment: ["dumbbells", "adjustable_bench"] });
 
   it("lists only same-pattern, doable, allowed exercises that are not already in the session", () => {
     const d = draftOf(["db_bench_press", "goblet_squat", "incline_db_press"], p);

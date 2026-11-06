@@ -38,7 +38,7 @@ describe("domain contract", () => {
     const profile: Profile = {
       trainingDays: ["mon", "wed", "fri"],
       sessionMinutes: 45,
-      equipment: ["dumbbells", "bench"],
+      equipment: ["dumbbells", "adjustable_bench"],
       dumbbellRange: { min: 5, max: 20, step: 2.5 },
       goal: "build_muscle",
       level: "beginner",

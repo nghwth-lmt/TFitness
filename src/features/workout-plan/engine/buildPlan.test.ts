@@ -70,7 +70,7 @@ describe("buildPlan equipment filter (AC03)", () => {
   it("Dumbbells + Bench: no barbell, machine or cable exercise", () => {
     for (let seed = 1; seed <= 20; seed++) {
       const plan = buildPlan(
-        profile({ equipment: ["dumbbells", "bench"], dumbbellRange: { min: 5, max: 20, step: 2.5 } }),
+        profile({ equipment: ["dumbbells", "adjustable_bench"], dumbbellRange: { min: 5, max: 20, step: 2.5 } }),
         EXERCISES,
         seed,
       );

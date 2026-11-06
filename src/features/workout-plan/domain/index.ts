@@ -7,17 +7,8 @@ export type Weekday = (typeof WEEKDAYS)[number];
 export const SESSION_MINUTES = [30, 45, 60, 75, 90] as const;
 export type SessionMinutes = (typeof SESSION_MINUTES)[number];
 
-export const EQUIPMENT_IDS = [
-  "barbell",
-  "rack",
-  "dumbbells",
-  "bench",
-  "cable",
-  "machines",
-  "pullup_bar",
-  "bands",
-] as const;
-export type EquipmentId = (typeof EQUIPMENT_IDS)[number];
+export * from "./equipment";
+import type { EquipmentId } from "./equipment";
 
 export const GOALS = ["build_muscle", "get_stronger", "lose_fat", "general_fitness"] as const;
 export type Goal = (typeof GOALS)[number];

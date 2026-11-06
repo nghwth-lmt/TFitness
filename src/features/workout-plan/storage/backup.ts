@@ -2,6 +2,7 @@ import {
   BODY_AREAS,
   EQUIPMENT_IDS,
   GOALS,
+  migrateEquipmentIds,
   LEVELS,
   PATTERNS,
   SESSION_MINUTES,
@@ -125,6 +126,16 @@ function checkSetLog(l: unknown, i: number, errors: string[]) {
   if (!isNum(l.loggedAt)) errors.push(`${path}.loggedAt must be a number`);
 }
 
+function upgradeLegacyEquipment(input: Obj) {
+  const fix = (p: unknown) => {
+    if (isObj(p) && Array.isArray(p.equipment) && p.equipment.every((e) => typeof e === "string")) {
+      p.equipment = migrateEquipmentIds(p.equipment as string[], { keepUnknown: true });
+    }
+  };
+  fix(input.profile);
+  for (const plan of input.plans as unknown[]) if (isObj(plan)) fix(plan.profile);
+}
+
 export type ParseResult = { ok: true; file: BackupFile } | { ok: false; errors: string[] };
 
 export function parseBackup(input: unknown): ParseResult {
@@ -137,6 +148,8 @@ export function parseBackup(input: unknown): ParseResult {
   for (const key of ["plans", "sessions", "setLogs"] as const) if (!Array.isArray(input[key])) errors.push(`${key} must be an array`);
   if (errors.length) return { ok: false, errors };
 
+  // Files written before PRD v1.1 use the 8 old equipment ids: upgrade them first (AC20).
+  upgradeLegacyEquipment(input);
   if (input.profile !== null) checkProfile(input.profile, "profile", errors);
   (input.plans as unknown[]).forEach((p, i) => checkPlan(p, i, errors));
   (input.sessions as unknown[]).forEach((s, i) => checkSession(s, i, errors));

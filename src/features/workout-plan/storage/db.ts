@@ -1,4 +1,5 @@
 import Dexie, { type DexieOptions, type Table } from "dexie";
+import { migrateProfile } from "../domain/equipment";
 import type { Plan, Profile, Session, SetLog } from "../domain";
 
 export const DB_NAME = "spotter-workout-plan";
@@ -21,6 +22,15 @@ export class WorkoutDb extends Dexie {
       sessions: "id, planId, status, startedAt",
       setLogs: "id, sessionId, exerciseId, [exerciseId+loggedAt]",
     });
+    // v2 (PRD v1.1, AC20): equipment ids went from 8 to 33. Rewrite stored profiles and plan snapshots.
+    this.version(2)
+      .stores({})
+      .upgrade(async (tx) => {
+        await tx.table("profile").toCollection().modify((row) => Object.assign(row, migrateProfile(row)));
+        await tx.table("plans").toCollection().modify((plan) => {
+          if (plan.profile) plan.profile = migrateProfile(plan.profile);
+        });
+      });
   }
 }
 

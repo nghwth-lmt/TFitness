@@ -51,6 +51,66 @@ export function buildWeekStrip(input: {
   });
 }
 
+export type WeekStats = {
+  /** Completed sessions this week (Monday 00:00 to Sunday, device time). */
+  done: number;
+  /** Training days declared in the profile. */
+  planned: number;
+  /** Consecutive weeks with done >= planned, counted back from last week; this week joins once it is reached. */
+  streakWeeks: number;
+  /** Sum of kg x reps over the sets of completed sessions this week. Bodyweight sets count kg as 0. */
+  volumeKg: number;
+  sets: number;
+  /** Whole-number percent against last week. null when last week has 0 (UI shows a dash, never 0%). */
+  deltaVolumePct: number | null;
+  deltaSetsPct: number | null;
+};
+
+const MAX_STREAK_WEEKS = 520;
+const pct = (now: number, before: number): number | null => (before > 0 ? Math.round(((now - before) / before) * 100) : null);
+
+/** Weekly numbers for the Today widgets (W42, AC27). Only `completed` sessions count; abandoned and in-progress never do. */
+export function buildWeekStats(input: {
+  now: number;
+  utcOffsetMin: number;
+  planned: number;
+  sessions: readonly Pick<Session, "id" | "status" | "finishedAt">[];
+  setLogs: readonly SetLog[];
+  catalog?: readonly Exercise[];
+}): WeekStats {
+  const catalog = input.catalog ?? EXERCISES;
+  const start = weekStartUtc(input.now, input.utcOffsetMin);
+  const finished = input.sessions.filter((s) => s.status === "completed" && s.finishedAt !== null) as { id: string; finishedAt: number }[];
+  const inWeek = (from: number) => finished.filter((s) => s.finishedAt >= from && s.finishedAt < from + 7 * DAY_MS);
+  const bodyweight = new Set(catalog.filter((c) => c.loadType === "bodyweight").map((c) => c.id));
+  const totals = (from: number) => {
+    const ids = new Set(inWeek(from).map((s) => s.id));
+    let volumeKg = 0;
+    let sets = 0;
+    for (const l of input.setLogs) {
+      if (!ids.has(l.sessionId)) continue;
+      sets += 1;
+      volumeKg += bodyweight.has(l.exerciseId) ? 0 : (l.kg ?? 0) * l.reps;
+    }
+    return { volumeKg: Math.round(volumeKg * 100) / 100, sets };
+  };
+  const reached = (from: number) => input.planned > 0 && inWeek(from).length >= input.planned;
+
+  const now = totals(start);
+  const before = totals(start - 7 * DAY_MS);
+  let streakWeeks = reached(start) ? 1 : 0;
+  for (let i = 1; i <= MAX_STREAK_WEEKS && reached(start - i * 7 * DAY_MS); i++) streakWeeks += 1;
+  return {
+    done: inWeek(start).length,
+    planned: input.planned,
+    streakWeeks,
+    volumeKg: now.volumeKg,
+    sets: now.sets,
+    deltaVolumePct: pct(now.volumeKg, before.volumeKg),
+    deltaSetsPct: pct(now.sets, before.sets),
+  };
+}
+
 export type TodayExerciseRow = {
   exerciseId: string;
   slot: string;
@@ -77,6 +137,8 @@ type Common = {
   /** Today is one of the declared training days. */
   isTrainingDay: boolean;
   weekProgress: { completed: number; target: number };
+  /** Week ring, streak, volume and sets widgets (W42). */
+  weekStats: WeekStats;
 };
 
 export type TodayVM =
@@ -132,6 +194,7 @@ export function buildTodayVM(input: TodayInput): TodayVM {
     weekday,
     weekStrip: buildWeekStrip({ now, utcOffsetMin: offset, trainingDays: profile.trainingDays, sessions }),
     isTrainingDay: profile.trainingDays.includes(weekday),
+    weekStats: buildWeekStats({ now, utcOffsetMin: offset, planned: profile.trainingDays.length, sessions, setLogs, catalog }),
     weekProgress: {
       completed: sessions.filter((s) => s.status === "completed" && s.finishedAt !== null && s.finishedAt >= start && s.finishedAt < start + 7 * DAY_MS).length,
       target: profile.trainingDays.length,

@@ -93,6 +93,15 @@ export type Exercise = {
   cue: string;
 };
 
+/** Visual and descriptive data that the imported catalog carries (W30). Instructions stay in English. */
+export type ExerciseDetails = {
+  /** Two frames: start position, end position. Served from /exercises/<id>/. */
+  images: string[];
+  instructions: string[];
+  primaryMuscles: string[];
+  secondaryMuscles: string[];
+};
+
 export type RepRange = { min: number; max: number };
 
 export type TemplateSlot = {

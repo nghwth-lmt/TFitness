@@ -3,7 +3,7 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* Spotter design tokens v1.2 · G0 v1.1 duyệt 05/11/2026; v1.2 thêm --warning (K9, duyệt 06/11/2026)
+/* Spotter design tokens v1.3 · v1.1 G0 05/11; v1.2 --warning (K9); v1.3 font hệ thống (SF Pro trên Apple) + Hugeicons, duyệt 06/11/2026
    Lớp 1 primitive → lớp 2 semantic (tên shadcn/ui) → lớp 3 theo vai (radius). */
 :root {
   /* Primitive: brand orange, 5 sắc độ */
@@ -70,8 +70,12 @@
   --radius-item: 0.5rem;
 
   /* Font theo vai */
-  --font-heading: "Barlow Condensed", ui-sans-serif, system-ui, sans-serif;
-  --font-body: "Barlow", ui-sans-serif, system-ui, sans-serif;
+  /* Font hệ thống: Apple → SF Pro (Display/Text tự chọn theo cỡ), Android → Roboto, Windows → Segoe UI.
+     Không nhúng file SF Pro (giấy phép Apple không cho dùng làm webfont). */
+  --font-system: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-heading: var(--font-system);
+  --font-body: var(--font-system);
+  --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
 }
 
 .dark {
@@ -156,5 +160,13 @@
   }
   h1, h2, h3, h4 {
     font-family: var(--font-heading);
+    letter-spacing: -0.02em;
+  }
+  html {
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .tabular-nums, [data-numeric] {
+    font-variant-numeric: tabular-nums;
   }
 }

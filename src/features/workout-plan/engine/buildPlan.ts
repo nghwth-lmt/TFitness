@@ -1,5 +1,5 @@
 import { MAX_SPLIT_DAYS, MIN_TRAINING_DAYS } from "../config";
-import { LEVELS, type Exercise, type Place, type Plan, type Profile, type SessionTemplate, type SplitId, type TemplateSlot } from "../domain";
+import { LEVELS, type Exercise, type MissingSlot, type Place, type Plan, type Profile, type SessionTemplate, type SplitId, type TemplateSlot } from "../domain";
 import { availableExercises, levelAtMost } from "./availability";
 import { profileForPlace } from "./places";
 import { createRng } from "./prng";
@@ -50,6 +50,7 @@ export function selectTemplates(
     const key = TEMPLATE_KEYS[index];
     const slots: TemplateSlot[] = [];
     const notes: string[] = [];
+    const missing: MissingSlot[] = [];
     const usedInTemplate = new Set<string>();
     const counters = { main: 0, acc: 0 };
 
@@ -96,13 +97,14 @@ export function selectTemplates(
 
       if (!chosen) {
         notes.push(`No exercise available for ${s.pattern.replace("_", " ")} (${s.role}); slot skipped.`);
+        missing.push({ slot, pattern: s.pattern, role: s.role });
         continue;
       }
       usedInTemplate.add(chosen.id);
       usedInPlan.add(chosen.id);
       slots.push({ slot, pattern: s.pattern, role: s.role, exerciseId: chosen.id });
     }
-    return { key, name: spec.name, slots, notes };
+    return { key, name: spec.name, slots, notes, ...(missing.length ? { missing } : {}) };
   });
 }
 

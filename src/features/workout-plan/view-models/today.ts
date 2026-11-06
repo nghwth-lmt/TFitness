@@ -25,6 +25,32 @@ export function weekStartUtc(now: number, utcOffsetMin: number): number {
   return Math.floor(local / DAY_MS) * DAY_MS - daysSinceMonday * DAY_MS - utcOffsetMin * 60_000;
 }
 
+/**
+ * The 7 days of the current week (Monday first, device time). A day with a completed session is `done`
+ * (also today, so finishing today turns the ring into a tick); else today is `today`; other days are
+ * `planned` or `missed` on a training day (ahead or past) and `rest` otherwise.
+ */
+export function buildWeekStrip(input: {
+  now: number;
+  utcOffsetMin: number;
+  trainingDays: readonly Weekday[];
+  sessions: readonly Pick<Session, "status" | "finishedAt">[];
+}): WeekStripDay[] {
+  const start = weekStartUtc(input.now, input.utcOffsetMin);
+  const finished = input.sessions.filter((s) => s.status === "completed" && s.finishedAt !== null).map((s) => s.finishedAt as number);
+  const todayIndex = Math.floor((input.now - start) / DAY_MS);
+  return Array.from({ length: 7 }, (_, i) => {
+    const from = start + i * DAY_MS;
+    const date = new Date(from + input.utcOffsetMin * 60_000).toISOString().slice(0, 10);
+    let state: WeekDayState;
+    if (finished.some((t) => t >= from && t < from + DAY_MS)) state = "done";
+    else if (i === todayIndex) state = "today";
+    else if (!input.trainingDays.includes(localWeekday(from, input.utcOffsetMin))) state = "rest";
+    else state = i > todayIndex ? "planned" : "missed";
+    return { date, state };
+  });
+}
+
 export type TodayExerciseRow = {
   exerciseId: string;
   slot: string;
@@ -40,8 +66,14 @@ export type TodayExerciseRow = {
   hint?: string;
 };
 
+/** done = a completed session that day; today = the current day; planned = a training day still ahead; missed = a training day that passed without one; rest = not a training day. */
+export type WeekDayState = "done" | "planned" | "today" | "rest" | "missed";
+export type WeekStripDay = { date: string; state: WeekDayState };
+
 type Common = {
   weekday: Weekday;
+  /** Monday to Sunday of the current week, device time (W34). */
+  weekStrip: WeekStripDay[];
   /** Today is one of the declared training days. */
   isTrainingDay: boolean;
   weekProgress: { completed: number; target: number };
@@ -98,6 +130,7 @@ export function buildTodayVM(input: TodayInput): TodayVM {
   const start = weekStartUtc(now, offset);
   const common: Common = {
     weekday,
+    weekStrip: buildWeekStrip({ now, utcOffsetMin: offset, trainingDays: profile.trainingDays, sessions }),
     isTrainingDay: profile.trainingDays.includes(weekday),
     weekProgress: {
       completed: sessions.filter((s) => s.status === "completed" && s.finishedAt !== null && s.finishedAt >= start && s.finishedAt < start + 7 * DAY_MS).length,

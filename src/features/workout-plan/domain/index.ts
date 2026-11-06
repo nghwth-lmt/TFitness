@@ -127,6 +127,9 @@ export type TemplateSlot = {
   sets?: number;
 };
 
+/** A slot the planner had no exercise for (AC05, W35). The Plan screen turns it into a gear suggestion. */
+export type MissingSlot = { slot: string; pattern: Pattern; role: SlotRole };
+
 export type SessionTemplate = {
   /** "A", "B", "C" or "Push", "Pull"... stable within a plan. */
   key: string;
@@ -134,6 +137,8 @@ export type SessionTemplate = {
   slots: TemplateSlot[];
   /** Human notes such as a dropped slot with no available exercise (AC05). */
   notes: string[];
+  /** Slots with no exercise available. Absent when every slot was filled and in plans saved before W35. */
+  missing?: MissingSlot[];
 };
 
 export type PlanStatus = "active" | "archived";

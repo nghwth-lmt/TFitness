@@ -3,9 +3,9 @@
 Source: free-exercise-db snapshot 2026-11-06 (Unlicense). exercises.json sha256 `5bb747e3fc658f095a60dcbf6d53c96627acdcc6ffb6fffde86f7e26995d40bf`.
 
 - Source exercises: 876
-- Imported: 293
-- Excluded: 583
-- Images: 586 files, 11.91 MB
+- Imported: 292
+- Excluded: 584
+- Images: 584 files, 11.88 MB
 
 ## Coverage: equipment item x exercises that list it
 
@@ -15,7 +15,7 @@ Source: free-exercise-db snapshot 2026-11-06 (Unlicense). exercises.json sha256 
 | ez_bar | 7 |
 | trap_bar | 1 |
 | dumbbells | 56 |
-| kettlebells | 19 |
+| kettlebells | 18 |
 | plates | 3 |
 | squat_rack | 7 |
 | smith_machine | 15 |
@@ -50,7 +50,7 @@ Source: free-exercise-db snapshot 2026-11-06 (Unlicense). exercises.json sha256 
 
 | Preset | squat | hinge | horizontal_push | horizontal_pull | vertical_push | vertical_pull |
 |---|---|---|---|---|---|---|
-| Full gym | 20 | 26 | 54 | 32 | 20 | 13 |
+| Full gym | 20 | 25 | 54 | 32 | 20 | 13 |
 | Home: dumbbells + bench | 4 | 7 | 19 | 10 | 6 | 7 |
 | Bodyweight only | 1 | 3 | 4 | 2 | 1 | 0 |
 
@@ -61,7 +61,7 @@ Source: free-exercise-db snapshot 2026-11-06 (Unlicense). exercises.json sha256 
 | arms | 46 |
 | calves | 12 |
 | core | 31 |
-| hinge | 26 |
+| hinge | 25 |
 | horizontal_pull | 32 |
 | horizontal_push | 54 |
 | side_delt | 17 |
@@ -74,10 +74,10 @@ Source: free-exercise-db snapshot 2026-11-06 (Unlicense). exercises.json sha256 
 
 | Reason | Count |
 |---|---|
-| redundant variant (bucket keeps 4) | 124 |
 | category stretching | 123 |
-| category plyometrics | 60 |
-| olympic, skill, conditioning or ballistic movement | 52 |
+| redundant variant (bucket keeps 4) | 122 |
+| category plyometrics | 61 |
+| olympic, skill, conditioning or ballistic movement | 50 |
 | accommodating resistance (chains, bands, pins, boards) | 41 |
 | category olympic weightlifting | 35 |
 | neck, wrist, rehab or throwing work | 32 |
@@ -89,6 +89,7 @@ Source: free-exercise-db snapshot 2026-11-06 (Unlicense). exercises.json sha256 
 | needs a preacher bench, not in the equipment list | 7 |
 | equipment "machine" not mapped with confidence | 6 |
 | equipment "other" not mapped with confidence | 5 |
+| no instructions in the source | 4 |
 | no two images in snapshot | 4 |
 | load unspecified in the source | 1 |
 | needs a hyperextension bench, not in the equipment list | 1 |
@@ -205,7 +206,6 @@ Source: free-exercise-db snapshot 2026-11-06 (Unlicense). exercises.json sha256 
 - `Frog_Sit-Ups` Frog Sit-Ups: redundant variant (bucket keeps 4)
 - `Front_Barbell_Squat` Front Barbell Squat: redundant variant (bucket keeps 4)
 - `Front_Barbell_Squat_To_A_Bench` Front Barbell Squat To A Bench: redundant variant (bucket keeps 4)
-- `Front_Box_Jump` Front Box Jump: olympic, skill, conditioning or ballistic movement
 - `Front_Dumbbell_Raise` Front Dumbbell Raise: unusual or unsafe to prescribe automatically
 - `Front_Incline_Dumbbell_Raise` Front Incline Dumbbell Raise: unusual or unsafe to prescribe automatically
 - `Front_Squat_Clean_Grip` Front Squat (Clean Grip): olympic, skill, conditioning or ballistic movement
@@ -226,7 +226,7 @@ Source: free-exercise-db snapshot 2026-11-06 (Unlicense). exercises.json sha256 
 - `Incline_Push-Up_Close-Grip` Incline Push-Up Close-Grip: redundant variant (bucket keeps 4)
 - `Incline_Push-Up_Reverse_Grip` Incline Push-Up Reverse Grip: redundant variant (bucket keeps 4)
 - `Internal_Rotation_with_Band` Internal Rotation with Band: accommodating resistance (chains, bands, pins, boards)
-- `Iron_Cross` Iron Cross: olympic, skill, conditioning or ballistic movement
+- `Iron_Cross` Iron Cross: no instructions in the source
 - `Isometric_Neck_Exercise_-_Front_And_Back` Isometric Neck Exercise - Front And Back: neck, wrist, rehab or throwing work
 - `Isometric_Neck_Exercise_-_Sides` Isometric Neck Exercise - Sides: neck, wrist, rehab or throwing work
 - `Isometric_Wipers` Isometric Wipers: unusual or unsafe to prescribe automatically
@@ -286,6 +286,7 @@ Source: free-exercise-db snapshot 2026-11-06 (Unlicense). exercises.json sha256 
 - `One-Arm_Kettlebell_Snatch` One-Arm Kettlebell Snatch: olympic, skill, conditioning or ballistic movement
 - `One-Arm_Kettlebell_Split_Jerk` One-Arm Kettlebell Split Jerk: olympic, skill, conditioning or ballistic movement
 - `One-Arm_Kettlebell_Split_Snatch` One-Arm Kettlebell Split Snatch: olympic, skill, conditioning or ballistic movement
+- `One-Arm_Kettlebell_Swings` One-Arm Kettlebell Swings: no instructions in the source
 - `One-Arm_Open_Palm_Kettlebell_Clean` One-Arm Open Palm Kettlebell Clean: olympic, skill, conditioning or ballistic movement
 - `One-Arm_Side_Deadlift` One-Arm Side Deadlift: redundant variant (bucket keeps 4)
 - `One_Arm_Chin-Up` One Arm Chin-Up: redundant variant (bucket keeps 4)
@@ -346,8 +347,8 @@ Source: free-exercise-db snapshot 2026-11-06 (Unlicense). exercises.json sha256 
 - `Seated_Two-Arm_Palms-Up_Low-Pulley_Wrist_Curl` Seated Two-Arm Palms-Up Low-Pulley Wrist Curl: neck, wrist, rehab or throwing work
 - `See-Saw_Press_Alternating_Side_Press` See-Saw Press (Alternating Side Press): redundant variant (bucket keeps 4)
 - `Shoulder_Press_-_With_Bands` Shoulder Press - With Bands: accommodating resistance (chains, bands, pins, boards)
-- `Side_Bridge` Side Bridge: redundant variant (bucket keeps 4)
-- `Side_Jackknife` Side Jackknife: redundant variant (bucket keeps 4)
+- `Side_Bridge` Side Bridge: no instructions in the source
+- `Side_Jackknife` Side Jackknife: no instructions in the source
 - `Side_Laterals_to_Front_Raise` Side Laterals to Front Raise: redundant variant (bucket keeps 4)
 - `Side_To_Side_Chins` Side To Side Chins: redundant variant (bucket keeps 4)
 - `Single-Arm_Linear_Jammer` Single-Arm Linear Jammer: olympic, skill, conditioning or ballistic movement

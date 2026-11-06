@@ -91,7 +91,7 @@ export type Exercise = {
   avoidFlags: BodyArea[];
   loadType: LoadType;
   cue: string;
-};
+} & ExerciseDetails;
 
 /** Visual and descriptive data that the imported catalog carries (W30). Instructions stay in English. */
 export type ExerciseDetails = {

@@ -193,6 +193,6 @@ describe("buildPlan determinism + variety", () => {
   it("equipment list passed as OR-of-AND: barbell without rack gives no squat rack lifts", () => {
     const eq: EquipmentId[] = ["barbell"];
     const plan = buildPlan(profile({ equipment: eq }), EXERCISES, 1);
-    for (const e of exercisesOf(plan)) expect(e.id).not.toBe("back_squat");
+    for (const e of exercisesOf(plan)) expect(e.id).not.toBe("Barbell_Squat");
   });
 });

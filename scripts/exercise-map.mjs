@@ -3,7 +3,7 @@
 // PRD section 6.1 are derived from keywords in the exercise name plus the explicit rules below.
 // First matching rule wins. An exercise that no rule maps with confidence is excluded, never guessed (W30).
 
-/** Source categories that can become workouts. Plyometrics are allowed only through ID_OVERRIDES. */
+/** Source categories that can become workouts. Plyometrics are allowed only through ID_ALLOW_EXTRA. */
 export const CATEGORY_ALLOW = ["strength", "powerlifting"];
 
 /** Excluded by name, before any mapping. [regex on lowercase name, reason]. */
@@ -44,11 +44,10 @@ export const PATTERN_RULES = [
 /** Pattern decided by id when the name rules cannot (id -> pattern). */
 export const ID_PATTERN = {
   "Handstand_Push-Ups": "vertical_push",
-  Front_Box_Jump: "squat",
 };
 
-/** Plyometric ids that are allowed (they carry a knee flag through AVOID_RULES). */
-export const ID_ALLOW_EXTRA = ["Front_Box_Jump"];
+/** Ids from other source categories that are allowed. */
+export const ID_ALLOW_EXTRA = [];
 
 /** Explicit exclusions by id with a reason. */
 export const ID_EXCLUDE = {
@@ -135,9 +134,7 @@ export const DEFAULT_EQUIPMENT = {
 };
 
 /** Id overrides for single exercises: { equipment?, role?, pattern?, cue? }. */
-export const ID_OVERRIDES = {
-  Front_Box_Jump: { equipment: [["plyo_box"]], role: "accessory" },
-};
+export const ID_OVERRIDES = {};
 
 /** Avoid flags by name keywords (W06). First lists that match all add their flags. */
 export const AVOID_RULES = [

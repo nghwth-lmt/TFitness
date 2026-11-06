@@ -7,11 +7,11 @@ import { nextSession } from "./schedule";
 
 const RANGE: RepRange = { min: 6, max: 10 };
 const prog = (l: SetLog[], r: RepRange, t: LoadType, d?: DumbbellRange) =>
-  progression(t === "bodyweight" ? "push_up" : "bench_press", l, r, t, d);
+  progression(t === "bodyweight" ? "Pushups" : "Barbell_Bench_Press_-_Medium_Grip", l, r, t, d);
 let n = 0;
 
 /** One finished session of `exerciseId` at time `t`; `sets` are [kg, reps, rir?] tuples. */
-function logs(sessionId: string, t: number, sets: Array<[number | null, number] | [number | null, number, Rir | null]>, exerciseId = "bench_press"): SetLog[] {
+function logs(sessionId: string, t: number, sets: Array<[number | null, number] | [number | null, number, Rir | null]>, exerciseId = "Barbell_Bench_Press_-_Medium_Grip"): SetLog[] {
   return sets.map(([kg, reps, rir = null], i) => ({
     id: `l${n++}`,
     sessionId,
@@ -141,12 +141,12 @@ describe("progression: bodyweight", () => {
   });
 
   it("adds one rep over the weakest set of the last session", () => {
-    const l = logs("s1", 100, [[null, 12], [null, 11], [null, 12]], "push_up");
+    const l = logs("s1", 100, [[null, 12], [null, 11], [null, 12]], "Pushups");
     expect(prog(l, { min: 10, max: 15 }, bw)).toEqual({ targetKg: null, targetReps: 12 });
   });
 
   it("caps at 15 reps and then suggests a harder variation", () => {
-    const l = logs("s1", 100, [[null, 15], [null, 15]], "push_up");
+    const l = logs("s1", 100, [[null, 15], [null, 15]], "Pushups");
     expect(prog(l, { min: 10, max: 15 }, bw)).toEqual({ targetKg: null, targetReps: 15, hint: HARDER_VARIATION_HINT });
   });
 });
@@ -164,10 +164,10 @@ describe("progressionFromHistory", () => {
         ...logs("s2", 200, topSets(40)),
         ...logs("s3", 300, [[30, 3]]),
         ...logs("s4", 400, [[30, 3]]),
-        ...logs("s1", 100, [[99, 1]], "back_squat"),
+        ...logs("s1", 100, [[99, 1]], "Barbell_Squat"),
       ],
     };
-    expect(progressionFromHistory("bench_press", history, RANGE, "barbell")).toEqual({ targetKg: 42.5 });
+    expect(progressionFromHistory("Barbell_Bench_Press_-_Medium_Grip", history, RANGE, "barbell")).toEqual({ targetKg: 42.5 });
   });
 });
 

@@ -56,6 +56,10 @@ describe("domain contract", () => {
       avoidFlags: [],
       loadType: "bodyweight",
       cue: "c",
+      images: ["/exercises/x/0.webp", "/exercises/x/1.webp"],
+      instructions: ["Do it."],
+      primaryMuscles: ["quadriceps"],
+      secondaryMuscles: [],
     };
     const template: SessionTemplate = { key: "A", name: "Full body A", slots: [], notes: [] };
     const plan: Plan = {

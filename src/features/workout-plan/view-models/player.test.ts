@@ -38,9 +38,9 @@ function session(over: Partial<Session> = {}): Session {
     startedAt: T0,
     finishedAt: null,
     exercises: [
-      { exerciseId: "bench_press", slot: "main-1", role: "main", targetSets: 3, repRange: { min: 6, max: 10 }, targetKg: 40, restSec: 120 },
-      { exerciseId: "goblet_squat", slot: "main-2", role: "main", targetSets: 2, repRange: { min: 6, max: 10 }, targetKg: 16, restSec: 120 },
-      { exerciseId: "push_up", slot: "acc-1", role: "accessory", targetSets: 2, repRange: { min: 10, max: 15 }, targetKg: null, targetReps: 12, restSec: 60 },
+      { exerciseId: "Barbell_Bench_Press_-_Medium_Grip", slot: "main-1", role: "main", targetSets: 3, repRange: { min: 6, max: 10 }, targetKg: 40, restSec: 120 },
+      { exerciseId: "Dumbbell_Squat", slot: "main-2", role: "main", targetSets: 2, repRange: { min: 6, max: 10 }, targetKg: 16, restSec: 120 },
+      { exerciseId: "Pushups", slot: "acc-1", role: "accessory", targetSets: 2, repRange: { min: 10, max: 15 }, targetKg: null, targetReps: 12, restSec: 60 },
     ],
     ...over,
   };
@@ -71,7 +71,7 @@ describe("initPlayer", () => {
     expect(s.reps).toBe(10);
     expect(s.logs).toEqual([]);
     expect(s.warmup).toEqual({ minutes: 5, set: { kg: 20, reps: 8 }, dismissed: false });
-    expect(currentExercise(s).name).toBe("Barbell Bench Press");
+    expect(currentExercise(s).name).toBe("Barbell Bench Press - Medium Grip");
     expect(progressOf(s)).toEqual({ doneSets: 0, totalSets: 7 });
   });
 
@@ -99,8 +99,8 @@ describe("log a set and the rest clock (AC08)", () => {
     expect(s.status).toBe("resting");
     expect(s.restEndsAt).toBe(T0 + 120_000);
     expect(s.restTotalSec).toBe(120);
-    expect(s.logs).toEqual([{ exerciseId: "bench_press", setIndex: 0, kg: 42.5, reps: 8, rir: null, loggedAt: T0 }]);
-    expect(s.lastLogged).toEqual({ exerciseId: "bench_press", setIndex: 0 });
+    expect(s.logs).toEqual([{ exerciseId: "Barbell_Bench_Press_-_Medium_Grip", setIndex: 0, kg: 42.5, reps: 8, rir: null, loggedAt: T0 }]);
+    expect(s.lastLogged).toEqual({ exerciseId: "Barbell_Bench_Press_-_Medium_Grip", setIndex: 0 });
     expect([s.exerciseIndex, s.setIndex]).toEqual([0, 1]);
     expect(s.kg).toBe(42.5); // next set carries the weight just used
     expect(progressOf(s).doneSets).toBe(1);
@@ -286,10 +286,10 @@ describe("steppers", () => {
 describe("edit, swap and resume (AC11, AC13)", () => {
   it("editSet rewrites a logged set and nothing else", () => {
     const s = playerReducer(log(fresh(), T0), { type: "answerRir", rir: 1 });
-    const e = playerReducer(s, { type: "editSet", exerciseId: "bench_press", setIndex: 0, kg: 45, reps: 6 });
+    const e = playerReducer(s, { type: "editSet", exerciseId: "Barbell_Bench_Press_-_Medium_Grip", setIndex: 0, kg: 45, reps: 6 });
     expect(e.logs[0]).toMatchObject({ kg: 45, reps: 6, rir: 1, loggedAt: T0 });
-    expect(playerReducer(e, { type: "editSet", exerciseId: "bench_press", setIndex: 5, kg: 1, reps: 1 })).toBe(e);
-    expect(playerReducer(e, { type: "editSet", exerciseId: "bench_press", setIndex: 0, kg: 45, reps: -1 })).toBe(e);
+    expect(playerReducer(e, { type: "editSet", exerciseId: "Barbell_Bench_Press_-_Medium_Grip", setIndex: 5, kg: 1, reps: 1 })).toBe(e);
+    expect(playerReducer(e, { type: "editSet", exerciseId: "Barbell_Bench_Press_-_Medium_Grip", setIndex: 0, kg: 45, reps: -1 })).toBe(e);
   });
 
   it("swapExercise replaces the exercise in its slot and keeps every logged set", () => {
@@ -302,9 +302,9 @@ describe("edit, swap and resume (AC11, AC13)", () => {
     const swapped = playerReducer(s, {
       type: "swapExercise",
       slot: "main-2",
-      exercise: { ...s.exercises[1], exerciseId: "bodyweight_squat", name: "Bodyweight Squat", cue: "c", loadType: "bodyweight", kgStep: null, targetKg: null, targetReps: 12 },
+      exercise: { ...s.exercises[1], exerciseId: "Bodyweight_Squat", name: "Bodyweight Squat", cue: "c", loadType: "bodyweight", kgStep: null, targetKg: null, targetReps: 12 },
     });
-    expect(swapped.exercises[1].exerciseId).toBe("bodyweight_squat");
+    expect(swapped.exercises[1].exerciseId).toBe("Bodyweight_Squat");
     expect(swapped.logs).toEqual(before);
     expect([swapped.exerciseIndex, swapped.setIndex]).toEqual([1, 0]);
     expect(swapped.kg).toBeNull();
@@ -314,8 +314,8 @@ describe("edit, swap and resume (AC11, AC13)", () => {
 
   it("resume: rebuilds the position from stored sets and keeps their RIR", () => {
     const stored: SetLog[] = [
-      { id: "a", sessionId: "s1", exerciseId: "bench_press", setIndex: 0, kg: 40, reps: 9, rir: null, loggedAt: T0 },
-      { id: "b", sessionId: "s1", exerciseId: "bench_press", setIndex: 1, kg: 42.5, reps: 8, rir: 0, loggedAt: T0 + 1 },
+      { id: "a", sessionId: "s1", exerciseId: "Barbell_Bench_Press_-_Medium_Grip", setIndex: 0, kg: 40, reps: 9, rir: null, loggedAt: T0 },
+      { id: "b", sessionId: "s1", exerciseId: "Barbell_Bench_Press_-_Medium_Grip", setIndex: 1, kg: 42.5, reps: 8, rir: 0, loggedAt: T0 + 1 },
     ];
     const s = fresh(session(), stored);
     expect(s.status).toBe("working");
@@ -335,7 +335,7 @@ describe("edit, swap and resume (AC11, AC13)", () => {
   });
 
   it("resume ignores logs of other sessions' exercises it does not contain", () => {
-    const stray: SetLog = { id: "z", sessionId: "s1", exerciseId: "back_squat", setIndex: 0, kg: 100, reps: 5, rir: null, loggedAt: T0 };
+    const stray: SetLog = { id: "z", sessionId: "s1", exerciseId: "Barbell_Squat", setIndex: 0, kg: 100, reps: 5, rir: null, loggedAt: T0 };
     const s = fresh(session(), [stray]);
     expect(s.logs).toEqual([]);
     expect([s.exerciseIndex, s.setIndex]).toEqual([0, 0]);

@@ -3,7 +3,7 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* Spotter design tokens v1.1 · G0 duyệt 05/11/2026 (Q1–Q4 theo mặc định đề xuất)
+/* Spotter design tokens v1.2 · G0 v1.1 duyệt 05/11/2026; v1.2 thêm --warning (K9, duyệt 06/11/2026)
    Lớp 1 primitive → lớp 2 semantic (tên shadcn/ui) → lớp 3 theo vai (radius). */
 :root {
   /* Primitive: brand orange, 5 sắc độ */
@@ -50,6 +50,8 @@
   --destructive: #dc2626;  /* red-600 */
   --destructive-foreground: #ffffff;  /* stone-0 */
   --success: #15803d;  /* green-700 */
+  --warning: #b45309;  /* amber-700 · K9: 4,81:1 trên nền, 5,02:1 trên thẻ */
+  --warning-foreground: #ffffff;
   --success-foreground: #ffffff;  /* stone-0 */
   --border: #e7e5e4;  /* stone-200 */
   --input: #78716c;  /* stone-500 · G0 Q2: viền ô nhập 4,8:1 */
@@ -95,6 +97,8 @@
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;  /* G0 Q4: khớp shadcn text-white */
   --success: #22c55e;
+  --warning: #f59e0b;  /* amber-500 · K9: 9,2:1 trên nền, 8,14:1 trên thẻ */
+  --warning-foreground: #0c0a09;
   --success-foreground: #0c0a09;  /* stone-950 */
   --border: #292524;  /* stone-800 */
   --input: #78716c;  /* G0 Q2: 3,65:1 trên thẻ tối */
@@ -125,6 +129,8 @@
   --color-destructive-foreground: var(--destructive-foreground);
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);

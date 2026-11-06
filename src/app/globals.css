@@ -1,26 +1,160 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 
+@custom-variant dark (&:is(.dark *));
+
+/* Spotter design tokens v1.2 · G0 v1.1 duyệt 05/11/2026; v1.2 thêm --warning (K9, duyệt 06/11/2026)
+   Lớp 1 primitive → lớp 2 semantic (tên shadcn/ui) → lớp 3 theo vai (radius). */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Primitive: brand orange, 5 sắc độ */
+  --brand-100: #ffedd5; /* subtle */
+  --brand-300: #fdba74; /* disabled tint */
+  --brand-500: #f97316; /* base */
+  --brand-600: #ea580c; /* hover */
+  --brand-700: #c2410c; /* active, chữ màu brand trên nền sáng */
+  /* Primitive: neutral (stone) */
+  --stone-0: #ffffff;
+  --stone-50: #fafaf9;
+  --stone-100: #f5f5f4;
+  --stone-200: #e7e5e4;
+  --stone-500: #78716c;
+  --stone-600: #57534e;
+  --stone-800: #292524;
+  --stone-900: #1c1917;
+  --stone-950: #0c0a09;
+  /* Primitive: trạng thái */
+  --green-600: #16a34a;
+  --green-700: #15803d;
+  --red-600: #dc2626;
+
+  /* Semantic (light) */
+  --background: #fafaf9;  /* stone-50 */
+  --foreground: #1c1917;  /* stone-900 */
+  --card: #ffffff;  /* stone-0 */
+  --card-foreground: #1c1917;  /* stone-900 */
+  --popover: #ffffff;  /* stone-0 */
+  --popover-foreground: #1c1917;  /* stone-900 */
+  --primary: #f97316;  /* brand-500 */
+  --primary-foreground: #0c0a09;  /* stone-950 */
+  --primary-hover: #ea580c;  /* brand-600 */
+  --primary-active: #c2410c;  /* brand-700 */
+  --primary-subtle: #ffedd5;  /* brand-100 */
+  --primary-disabled: #fdba74;  /* brand-300 */
+  --primary-text: #c2410c;  /* brand-700 · G0 Q1: chữ/link màu brand trên nền sáng, 4,96:1 */
+  --secondary: #f5f5f4;  /* stone-100 */
+  --secondary-foreground: #1c1917;  /* stone-900 */
+  --muted: #f5f5f4;  /* stone-100 */
+  --muted-foreground: #57534e;  /* stone-600 */
+  --accent: #ffedd5;  /* brand-100 */
+  --accent-foreground: #1c1917;  /* stone-900 */
+  --destructive: #dc2626;  /* red-600 */
+  --destructive-foreground: #ffffff;  /* stone-0 */
+  --success: #15803d;  /* green-700 */
+  --warning: #b45309;  /* amber-700 · K9: 4,81:1 trên nền, 5,02:1 trên thẻ */
+  --warning-foreground: #ffffff;
+  --success-foreground: #ffffff;  /* stone-0 */
+  --border: #e7e5e4;  /* stone-200 */
+  --input: #78716c;  /* stone-500 · G0 Q2: viền ô nhập 4,8:1 */
+  --ring: #ea580c;  /* brand-600 */
+  --chart-1: #f97316;  /* brand-500 */
+  --chart-2: #16a34a;  /* green-600 */
+  --chart-3: #0ea5e9;
+  --chart-4: #a855f7;
+  --chart-5: #78716c;  /* stone-500 */
+
+  /* Radius theo vai */
+  --radius: 0.75rem;
+  --radius-card: 1rem;
+  --radius-tile: 0.75rem;
+  --radius-popover: 1rem;
+  --radius-item: 0.5rem;
+
+  /* Font theo vai */
+  --font-heading: "Barlow Condensed", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Barlow", ui-sans-serif, system-ui, sans-serif;
+}
+
+.dark {
+  --background: #0c0a09;  /* stone-950 */
+  --foreground: #fafaf9;  /* stone-50 */
+  --card: #1c1917;  /* stone-900 */
+  --card-foreground: #fafaf9;  /* stone-50 */
+  --popover: #1c1917;  /* stone-900 */
+  --popover-foreground: #fafaf9;  /* stone-50 */
+  --primary: #f97316;  /* brand-500 */
+  --primary-foreground: #0c0a09;  /* stone-950 */
+  --primary-hover: #fb923c;
+  --primary-active: #fdba74;  /* brand-300 */
+  --primary-subtle: #431407;
+  --primary-disabled: #9a3412;
+  --primary-text: #f97316;  /* brand-500 · 7,05:1 trên nền tối */
+  --secondary: #292524;  /* stone-800 */
+  --secondary-foreground: #fafaf9;  /* stone-50 */
+  --muted: #292524;  /* stone-800 */
+  --muted-foreground: #a8a29e;
+  --accent: #431407;
+  --accent-foreground: #fafaf9;  /* stone-50 */
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;  /* G0 Q4: khớp shadcn text-white */
+  --success: #22c55e;
+  --warning: #f59e0b;  /* amber-500 · K9: 9,2:1 trên nền, 8,14:1 trên thẻ */
+  --warning-foreground: #0c0a09;
+  --success-foreground: #0c0a09;  /* stone-950 */
+  --border: #292524;  /* stone-800 */
+  --input: #78716c;  /* G0 Q2: 3,65:1 trên thẻ tối */
+  --ring: #fb923c;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-active: var(--primary-active);
+  --color-primary-subtle: var(--primary-subtle);
+  --color-primary-disabled: var(--primary-disabled);
+  --color-primary-text: var(--primary-text);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --font-sans: var(--font-body);
+  --font-heading: var(--font-heading);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
   }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  body {
+    @apply bg-background text-foreground font-sans;
+  }
+  h1, h2, h3, h4 {
+    font-family: var(--font-heading);
+  }
 }

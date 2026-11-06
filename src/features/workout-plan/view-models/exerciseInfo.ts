@@ -1,4 +1,5 @@
 import { EXERCISES } from "../data/exercises";
+import { musclewikiUrl } from "../engine/musclewiki";
 import { EQUIPMENT_LABELS, type EquipmentId, type Exercise } from "../domain";
 
 export type EquipmentChip = { id: EquipmentId; label: string };
@@ -12,20 +13,23 @@ export type ExerciseInfo = {
   secondaryMuscles: string[];
   /** OR of ANDs, labelled. `[[]]` means bodyweight: no equipment needed. */
   equipment: EquipmentChip[][];
+  /** "Watch on MuscleWiki" link (W45). Always a musclewiki.com URL; the home page for an unknown exercise. */
+  musclewikiUrl: string;
 };
 
 /** Empty detail data for an exercise id the catalog does not know (an old plan). */
-export const NO_INFO: ExerciseInfo = { images: [], instructions: [], primaryMuscles: [], secondaryMuscles: [], equipment: [] };
+export const NO_INFO: ExerciseInfo = { images: [], instructions: [], primaryMuscles: [], secondaryMuscles: [], equipment: [], musclewikiUrl: musclewikiUrl(undefined) };
 
 /** Always a fresh copy, so the UI can never change the catalog. */
 export function exerciseInfo(ex: Exercise | undefined): ExerciseInfo {
-  if (!ex) return { ...NO_INFO, images: [], instructions: [], primaryMuscles: [], secondaryMuscles: [], equipment: [] };
+  if (!ex) return { ...NO_INFO, images: [], instructions: [], primaryMuscles: [], secondaryMuscles: [], equipment: [], musclewikiUrl: musclewikiUrl(undefined) };
   return {
     images: [...ex.images],
     instructions: [...ex.instructions],
     primaryMuscles: [...ex.primaryMuscles],
     secondaryMuscles: [...ex.secondaryMuscles],
     equipment: ex.equipment.map((and) => and.map((id) => ({ id, label: EQUIPMENT_LABELS[id] }))),
+    musclewikiUrl: musclewikiUrl(ex),
   };
 }
 

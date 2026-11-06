@@ -1,6 +1,7 @@
 import { MAX_SPLIT_DAYS, MIN_TRAINING_DAYS } from "../config";
-import { LEVELS, type Exercise, type Plan, type Profile, type SessionTemplate, type SplitId, type TemplateSlot } from "../domain";
+import { LEVELS, type Exercise, type Place, type Plan, type Profile, type SessionTemplate, type SplitId, type TemplateSlot } from "../domain";
 import { availableExercises, levelAtMost } from "./availability";
+import { profileForPlace } from "./places";
 import { createRng } from "./prng";
 import { trimTemplates } from "./trim";
 import { SPLITS, TEMPLATE_KEYS, splitForDays, type SlotSpec } from "./splits";
@@ -12,7 +13,12 @@ export type SelectOptions = {
   exclude?: Record<string, string[]>;
 };
 
-export type BuildOptions = { createdAt?: number; id?: string };
+export type BuildOptions = {
+  createdAt?: number;
+  id?: string;
+  /** Default place: its gear replaces the profile gear (W32). */
+  place?: Pick<Place, "equipment" | "dumbbellRange">;
+};
 
 function slotId(spec: SlotSpec, counters: { main: number; acc: number }): string {
   return spec.role === "main" ? `main-${++counters.main}` : `acc-${++counters.acc}`;
@@ -101,11 +107,12 @@ export function selectTemplates(
 }
 
 export function buildPlan(
-  profile: Profile,
+  input: Profile,
   catalog: readonly Exercise[],
   seed: number,
   options: BuildOptions = {},
 ): Plan {
+  const profile = options.place ? profileForPlace(input, options.place) : input;
   if (profile.trainingDays.length < MIN_TRAINING_DAYS) throw new RangeError("Pick at least 2 days");
   if (profile.trainingDays.length > MAX_SPLIT_DAYS) throw new RangeError("Pick at most 6 days");
   const split = splitForDays(profile.trainingDays.length);

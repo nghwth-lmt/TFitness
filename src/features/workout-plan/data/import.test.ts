@@ -42,6 +42,7 @@ makeSnapshot(snap, [
   { id: "Mystery_Move", name: "Mystery Move", equipment: "other" },
   { id: "No_Images", name: "Chin-Up", equipment: "body only", images: false },
   { id: "Stretchy", name: "Chest Stretch", equipment: "body only", category: "stretching" },
+  { id: "Small_Words", name: "Dumbbell Squat To A Bench", equipment: "dumbbell" },
   { id: "Long_Cue", name: "Dumbbell Bench Press", equipment: "dumbbell", instructions: ["Lie down on a flat bench with a dumbbell in each hand resting on top of your thighs while keeping your back flat and your core braced for the whole movement."] },
 ]);
 
@@ -61,7 +62,7 @@ describe("exercise importer (WL-11)", () => {
     expect(gen).not.toContain("Mystery_Move");
     expect(gen).not.toContain("No_Images");
     expect(gen).not.toContain("Stretchy");
-    expect(fs.readdirSync(path.join(out, "public/exercises")).sort()).toEqual(["Barbell_Bench", "Long_Cue", "Pushups"]);
+    expect(fs.readdirSync(path.join(out, "public/exercises")).sort()).toEqual(["Barbell_Bench", "Long_Cue", "Pushups", "Small_Words"]);
     expect(fs.existsSync(path.join(out, "public/exercises/Pushups/1.webp"))).toBe(true);
     const report = fs.readFileSync(path.join(out, "scripts/import-report.md"), "utf8");
     expect(report).toContain("`Mystery_Move` Mystery Move: pattern not mapped with confidence");
@@ -129,5 +130,50 @@ describe("exercise importer (WL-11)", () => {
     const rel = "src/features/workout-plan/data/exercises.generated.ts";
     expect(fs.readFileSync(path.join(out, rel), "utf8")).toBe(fs.readFileSync(path.join(repo, rel), "utf8"));
     expect(fs.readFileSync(path.join(out, "scripts/import-report.md"), "utf8")).toBe(fs.readFileSync(path.join(repo, "scripts/import-report.md"), "utf8"));
+  });
+
+  describe("standard names (W36)", () => {
+    const outDir = path.join(tmp, "names");
+    const rowsOf = () => {
+      const gen = fs.readFileSync(path.join(outDir, "src/features/workout-plan/data/exercises.generated.ts"), "utf8");
+      return gen.split("\n").filter((l) => l.startsWith("  {")).map((l) => JSON.parse(l.trim().replace(/,$/, "")));
+    };
+
+    it("renames to the standard name and keeps the id", () => {
+      expect(run(snap, outDir).status).toBe(0);
+      const rows = rowsOf();
+      expect(rows.find((r) => r.id === "Pushups").name).toBe("Push-up");
+      expect(rows.find((r) => r.id === "Barbell_Bench").name).toBe("Barbell Bench Press - Medium Grip");
+    });
+
+    it("lower-cases small words inside a name, and leaves a name alone when nothing applies", () => {
+      const rows = rowsOf();
+      expect(rows.find((r) => r.id === "Small_Words").name).toBe("Dumbbell Squat to a Bench");
+      expect(rows.find((r) => r.id === "Long_Cue").name).toBe("Dumbbell Bench Press");
+    });
+
+    it("lists every renamed exercise in the report, old name and new name", () => {
+      const report = fs.readFileSync(path.join(outDir, "scripts/import-report.md"), "utf8");
+      expect(report).toContain("## Renamed exercises (W36)");
+      expect(report).toContain('`Pushups`: "Pushups" -> "Push-up"');
+      expect(report).toContain('`Small_Words`: "Dumbbell Squat To A Bench" -> "Dumbbell Squat to a Bench"');
+      expect(report).not.toContain('`Long_Cue`: "Dumbbell Bench Press"');
+    });
+
+    it("the exercise class of a rename is unchanged: only name differs from the source name", () => {
+      const rows = rowsOf();
+      expect(rows.find((r) => r.id === "Pushups").pattern).toBe("horizontal_push");
+    });
+
+    it("stops when two exercises would get the same name", () => {
+      const dup = path.join(tmp, "free-exercise-db-2026-03-04");
+      makeSnapshot(dup, [
+        { id: "Pushups", name: "Pushups", equipment: "body only" },
+        { id: "Push_Up_Copy", name: "Push-Up", equipment: "body only" },
+      ]);
+      const r = run(dup, path.join(tmp, "out-dup"));
+      expect(r.status).toBe(1);
+      expect(r.stderr).toContain("same name");
+    });
   });
 });

@@ -8,16 +8,19 @@ import {
   SESSION_MINUTES,
   SPLIT_IDS,
   WEEKDAYS,
+  type Place,
   type Plan,
   type Profile,
   type Session,
   type SetLog,
 } from "../domain";
-import { MAX_SPLIT_DAYS } from "../config";
-import { PROFILE_ID, type WorkoutDb } from "./db";
+import { MAX_PLACES, MAX_SPLIT_DAYS } from "../config";
+import { validatePlaceInput } from "../engine/places";
+import { MIGRATED_PLACE_ID, PROFILE_ID, type PlaceRow, type WorkoutDb } from "./db";
 import { defaultDeps, type Deps } from "./repository";
 
-export const BACKUP_VERSION = 1;
+/** v2 adds `places` (PRD v1.3). v1 files still import. */
+export const BACKUP_VERSION = 2;
 
 export type BackupFile = {
   app: "spotter";
@@ -25,14 +28,16 @@ export type BackupFile = {
   version: number;
   exportedAt: number;
   profile: Profile | null;
+  places: Place[];
   plans: Plan[];
   sessions: Session[];
   setLogs: SetLog[];
 };
 
 export async function exportBackup(db: WorkoutDb, deps: Deps = defaultDeps): Promise<BackupFile> {
-  const [row, plans, sessions, setLogs] = await Promise.all([
+  const [row, places, plans, sessions, setLogs] = await Promise.all([
     db.profile.get(PROFILE_ID),
+    db.places.toArray(),
     db.plans.toArray(),
     db.sessions.toArray(),
     db.setLogs.toArray(),
@@ -49,6 +54,12 @@ export async function exportBackup(db: WorkoutDb, deps: Deps = defaultDeps): Pro
     version: BACKUP_VERSION,
     exportedAt: deps.now(),
     profile,
+    places: places
+      .sort((a, b) => a.createdAt - b.createdAt || a.id.localeCompare(b.id))
+      .map(({ createdAt: _c, ...p }) => {
+        void _c;
+        return p;
+      }),
     plans: plans.sort((a, b) => a.createdAt - b.createdAt || a.id.localeCompare(b.id)),
     sessions: sessions.sort((a, b) => (a.startedAt ?? 0) - (b.startedAt ?? 0) || a.id.localeCompare(b.id)),
     setLogs: setLogs.sort((a, b) => a.loggedAt - b.loggedAt || a.id.localeCompare(b.id)),
@@ -81,6 +92,19 @@ function checkProfile(p: unknown, path: string, errors: string[]) {
     const r = p.dumbbellRange;
     if (!isObj(r) || !isNum(r.min) || !isNum(r.max) || !isNum(r.step) || r.step <= 0 || r.min > r.max) errors.push(`${path}.dumbbellRange invalid`);
   }
+}
+
+function checkPlaces(list: unknown, errors: string[]) {
+  if (list === undefined) return; // files written before v2
+  if (!Array.isArray(list)) return errors.push("places must be an array");
+  if (list.length > MAX_PLACES) errors.push(`places has more than ${MAX_PLACES} entries`);
+  list.forEach((p, i) => {
+    const path = `places[${i}]`;
+    if (!isObj(p) || !isStr(p.id) || typeof p.isDefault !== "boolean") return errors.push(`${path} needs id and isDefault`);
+    const problem = validatePlaceInput(p as never);
+    if (problem) errors.push(`${path}: ${problem}`);
+  });
+  if (list.length > 0 && list.filter((p) => isObj(p) && p.isDefault === true).length !== 1) errors.push("places must have exactly one default");
 }
 
 function checkPlan(p: unknown, i: number, errors: string[]) {
@@ -134,6 +158,7 @@ function upgradeLegacyEquipment(input: Obj) {
     }
   };
   fix(input.profile);
+  if (Array.isArray(input.places)) for (const place of input.places) fix(place);
   for (const plan of input.plans as unknown[]) if (isObj(plan)) fix(plan.profile);
 }
 
@@ -151,6 +176,7 @@ export function parseBackup(input: unknown): ParseResult {
 
   // Files written before PRD v1.1 use the 8 old equipment ids: upgrade them first (AC20).
   upgradeLegacyEquipment(input);
+  checkPlaces(input.places, errors);
   if (input.profile !== null) checkProfile(input.profile, "profile", errors);
   (input.plans as unknown[]).forEach((p, i) => checkPlan(p, i, errors));
   (input.sessions as unknown[]).forEach((s, i) => checkSession(s, i, errors));
@@ -164,9 +190,9 @@ export function parseBackup(input: unknown): ParseResult {
 export type ImportResult =
   | {
       ok: true;
-      added: { plans: number; sessions: number; setLogs: number };
+      added: { plans: number; sessions: number; setLogs: number; places: number };
       updated: { sessions: number; setLogs: number };
-      skipped: { plans: number; sessions: number; setLogs: number };
+      skipped: { plans: number; sessions: number; setLogs: number; places: number };
       abandonedInProgress: number;
     }
   | { ok: false; errors: string[] };
@@ -192,6 +218,40 @@ export async function previewImport(db: WorkoutDb, text: string, deps: Deps = de
   return runImport(db, text, deps, true);
 }
 
+/**
+ * Places merge by id and never delete: a local place stays as it is, an imported one is added while fewer
+ * than 3 are saved (a name already in use gets " (imported)"), the rest is skipped. The local default stays
+ * the default. A device with no place takes the file's places, or one "My gym" made from the profile gear.
+ */
+async function mergePlaces(db: WorkoutDb, file: BackupFile, added: { places: number }, skipped: { places: number }) {
+  const local = (await db.places.toArray()).sort((a, b) => a.createdAt - b.createdAt || a.id.localeCompare(b.id));
+  const hadDefault = local.some((p) => p.isDefault);
+  let now = Math.max(0, ...local.map((p) => p.createdAt));
+  for (const p of file.places ?? []) {
+    if (local.some((l) => l.id === p.id)) {
+      skipped.places++;
+      continue;
+    }
+    if (local.length >= MAX_PLACES) {
+      skipped.places++;
+      continue;
+    }
+    const taken = new Set(local.map((l) => l.name.toLowerCase()));
+    const row: PlaceRow = { ...p, name: taken.has(p.name.toLowerCase()) ? `${p.name} (imported)` : p.name, isDefault: !hadDefault && p.isDefault, createdAt: ++now };
+    await db.places.add(row);
+    local.push(row);
+    added.places++;
+  }
+  if (local.length > 0 && !local.some((p) => p.isDefault)) await db.places.update(local[0].id, { isDefault: true });
+  if (local.length === 0) {
+    const profile = await db.profile.get(PROFILE_ID);
+    if (profile) {
+      await db.places.add({ id: MIGRATED_PLACE_ID, name: "My gym", equipment: [...profile.equipment], isDefault: true, createdAt: profile.updatedAt, ...(profile.dumbbellRange ? { dumbbellRange: profile.dumbbellRange } : {}) });
+      added.places++;
+    }
+  }
+}
+
 class DryRunDone extends Error {}
 
 async function runImport(db: WorkoutDb, text: string, deps: Deps, dryRun: boolean): Promise<ImportResult> {
@@ -205,13 +265,13 @@ async function runImport(db: WorkoutDb, text: string, deps: Deps, dryRun: boolea
   if (!parsed.ok) return parsed;
   const { file } = parsed;
 
-  const added = { plans: 0, sessions: 0, setLogs: 0 };
+  const added = { plans: 0, sessions: 0, setLogs: 0, places: 0 };
   const updated = { sessions: 0, setLogs: 0 };
-  const skipped = { plans: 0, sessions: 0, setLogs: 0 };
+  const skipped = { plans: 0, sessions: 0, setLogs: 0, places: 0 };
   let abandonedInProgress = 0;
 
   try {
-    await db.transaction("rw", db.profile, db.plans, db.sessions, db.setLogs, async () => {
+    await db.transaction("rw", db.profile, db.places, db.plans, db.sessions, db.setLogs, async () => {
     const localSessions = new Map((await db.sessions.toArray()).map((s) => [s.id, s]));
     const terminalBefore = new Set([...localSessions.values()].filter((s) => TERMINAL.includes(s.status)).map((s) => s.id));
 
@@ -267,6 +327,7 @@ async function runImport(db: WorkoutDb, text: string, deps: Deps, dryRun: boolea
     if (file.profile && (!local || file.profile.updatedAt >= local.updatedAt)) {
       await db.profile.put({ ...file.profile, id: PROFILE_ID });
     }
+    await mergePlaces(db, file, added, skipped);
     if (dryRun) throw new DryRunDone();
   });
   } catch (e) {

@@ -67,7 +67,7 @@ async function seeded(sessionCount: number) {
 }
 
 describe("loadTodayVM query ceiling", () => {
-  it("reads at most 4 times, never writes, and does not grow with the amount of history", async () => {
+  it("reads at most 5 times (profile, places, plans, sessions, setLogs; places added by W32), never writes, and does not grow with the amount of history", async () => {
     const { db: small, ops: opsSmall } = await seeded(2);
     const { db: large, ops: opsLarge } = await seeded(200);
     const a = await loadTodayVM(small, { now: 1_700_000_000_000, utcOffsetMin: 0 });
@@ -75,7 +75,7 @@ describe("loadTodayVM query ceiling", () => {
     expect(a.kind).toBe("next");
     expect(b.kind).toBe("next");
     expect(opsSmall.length).toBeGreaterThanOrEqual(3); // proves the counter sees real requests
-    expect(opsSmall.length).toBeLessThanOrEqual(4);
+    expect(opsSmall.length).toBeLessThanOrEqual(5);
     expect(opsLarge.length).toBe(opsSmall.length);
     expect([...opsSmall, ...opsLarge].some((o) => o.endsWith(".mutate"))).toBe(false);
   });
@@ -85,6 +85,6 @@ describe("loadTodayVM query ceiling", () => {
     const ops = instrument(db);
     expect(await loadTodayVM(db, { now: 1, utcOffsetMin: 0 })).toEqual({ kind: "needs_setup" });
     expect(ops.length).toBeGreaterThanOrEqual(1);
-    expect(ops.length).toBeLessThanOrEqual(4);
+    expect(ops.length).toBeLessThanOrEqual(5);
   });
 });

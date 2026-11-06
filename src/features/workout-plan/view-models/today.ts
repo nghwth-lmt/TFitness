@@ -1,5 +1,6 @@
+import { MAX_PLACES } from "../config";
 import { EXERCISES } from "../data/exercises";
-import type { EquipmentId, Exercise, Plan, Profile, RepRange, Session, SessionDraft, SetLog, Weekday } from "../domain";
+import type { EquipmentId, Exercise, Place, Plan, Profile, RepRange, Session, SessionDraft, SetLog, Weekday } from "../domain";
 import { estimateMinutes } from "../engine/estimateMinutes";
 import { completedCount, isNewBlockStart, nextSession } from "../engine/schedule";
 import { adjustForToday } from "../engine/substitution";
@@ -60,6 +61,11 @@ export type TodayVM =
       /** First session of a new block: UI shows the "New block" card. */
       newBlock: boolean;
       adjustedForToday: boolean;
+      /** Chip "At: <place>" (W32). Null when no place is saved yet. */
+      atPlace: Place | null;
+      /** Every saved place, for the "Where are you training?" sheet (D1). */
+      places: Place[];
+      canAddPlace: boolean;
       exercises: TodayExerciseRow[];
       notes: string[];
     } & Common);
@@ -74,6 +80,10 @@ export type TodayInput = {
   utcOffsetMin?: number;
   /** Equipment ticked in "What do I have today?". Absent = the plan's equipment. */
   todayEquipment?: readonly EquipmentId[];
+  /** Saved places (W32). */
+  places?: readonly Place[];
+  /** Where the user trains today and the items unticked for today. Absent = the default place, nothing unticked. */
+  today?: { placeId?: string; without?: readonly EquipmentId[] };
   catalog?: readonly Exercise[];
 };
 
@@ -110,7 +120,15 @@ export function buildTodayVM(input: TodayInput): TodayVM {
 
   const history = { sessions: [...sessions], setLogs: [...setLogs] };
   let draft = nextSession(plan, history, catalog);
-  if (input.todayEquipment) draft = adjustForToday(draft, input.todayEquipment, catalog, plan.profile, history);
+  const places = [...(input.places ?? [])];
+  const defaultPlace = places.find((p) => p.isDefault) ?? places[0] ?? null;
+  const atPlace = (input.today?.placeId ? places.find((p) => p.id === input.today?.placeId) : undefined) ?? defaultPlace;
+  const without = input.today?.without ?? [];
+  if (atPlace && (atPlace.id !== defaultPlace?.id || without.length > 0)) {
+    draft = adjustForToday(draft, { place: atPlace, without }, catalog, plan.profile, history);
+  } else if (input.todayEquipment) {
+    draft = adjustForToday(draft, input.todayEquipment, catalog, plan.profile, history);
+  }
 
   return {
     kind: "next",
@@ -121,6 +139,9 @@ export function buildTodayVM(input: TodayInput): TodayVM {
     restDay: !common.isTrainingDay,
     newBlock: isNewBlockStart(plan, completedCount(sessions, plan)),
     adjustedForToday: draft.adjustedForToday,
+    atPlace,
+    places,
+    canAddPlace: places.length < MAX_PLACES,
     exercises: draft.exercises.map((e) => {
       const ex = catalog.find((c) => c.id === e.exerciseId);
       return {

@@ -71,7 +71,7 @@ describe("initPlayer", () => {
     expect(s.reps).toBe(10);
     expect(s.logs).toEqual([]);
     expect(s.warmup).toEqual({ minutes: 5, set: { kg: 20, reps: 8 }, dismissed: false });
-    expect(currentExercise(s).name).toBe("Barbell Bench Press - Medium Grip");
+    expect(currentExercise(s).name).toBe("Barbell Bench Press") // W36: standard name, id unchanged;
     expect(progressOf(s)).toEqual({ doneSets: 0, totalSets: 7 });
   });
 

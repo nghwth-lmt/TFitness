@@ -1,5 +1,6 @@
-import { LEVELS, type EquipmentId, type Exercise, type History, type Profile, type SessionDraft, type SessionExercise } from "../domain";
+import { LEVELS, type EquipmentId, type TodayGear, type Exercise, type History, type Profile, type SessionDraft, type SessionExercise } from "../domain";
 import { levelAtMost, isDoable } from "./availability";
+import { gearEquipment } from "./places";
 import { progressionFromHistory } from "./progression";
 
 const EMPTY_HISTORY: History = { sessions: [], setLogs: [] };
@@ -49,11 +50,15 @@ function withProgression(base: SessionExercise, ex: Exercise, profile: Profile, 
  */
 export function adjustForToday(
   draft: SessionDraft,
-  todayEquipment: readonly EquipmentId[],
+  today: readonly EquipmentId[] | TodayGear,
   catalog: readonly Exercise[],
-  profile: Profile,
+  baseProfile: Profile,
   history: History = EMPTY_HISTORY,
 ): SessionDraft {
+  // A place (W32) brings its own gear and dumbbell range; a plain list keeps the profile range.
+  const gear = Array.isArray(today) ? undefined : (today as TodayGear);
+  const todayEquipment: readonly EquipmentId[] = gear ? gearEquipment(gear) : (today as readonly EquipmentId[]);
+  const profile: Profile = gear ? { ...baseProfile, dumbbellRange: gear.place.dumbbellRange } : baseProfile;
   const taken = new Set(draft.exercises.map((e) => e.exerciseId));
   const exercises: SessionExercise[] = [];
   const notes = [...draft.notes];
@@ -76,7 +81,17 @@ export function adjustForToday(
     exercises.push(withProgression(item, best, profile, history));
   }
 
-  return { ...draft, exercises, notes, todayEquipment: [...todayEquipment], adjustedForToday: changed };
+  const { placeId: _p, todayDumbbellRange: _r, ...clean } = draft;
+  void _p;
+  void _r;
+  return {
+    ...clean,
+    exercises,
+    notes,
+    todayEquipment: [...todayEquipment],
+    adjustedForToday: changed,
+    ...(gear ? { placeId: gear.place.id, ...(gear.place.dumbbellRange ? { todayDumbbellRange: gear.place.dumbbellRange } : {}) } : {}),
+  };
 }
 
 /** Exercises the player can offer for the Swap sheet (D2): same pattern, allowed, not already used. */
@@ -109,6 +124,7 @@ export function applySwap(
   const current = draft.exercises[index];
   const pick = swapCandidates(draft, current.exerciseId, catalog, profile).find((c) => c.id === newExerciseId);
   if (!pick) throw new RangeError(`${newExerciseId} is not a valid swap for ${current.exerciseId}`);
-  const exercises = draft.exercises.map((e, i) => (i === index ? withProgression(e, pick, profile, history) : e));
+  const prof: Profile = draft.placeId !== undefined ? { ...profile, dumbbellRange: draft.todayDumbbellRange } : profile;
+  const exercises = draft.exercises.map((e, i) => (i === index ? withProgression(e, pick, prof, history) : e));
   return { ...draft, exercises };
 }

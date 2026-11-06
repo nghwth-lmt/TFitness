@@ -78,6 +78,19 @@ export type Profile = {
   updatedAt: number;
 };
 
+/** A named set of gear (W32). At most 3 are stored and exactly one is the default. */
+export type Place = {
+  id: string;
+  name: string;
+  equipment: EquipmentId[];
+  dumbbellRange?: DumbbellRange;
+  isDefault: boolean;
+};
+export type PlaceInput = Pick<Place, "name" | "equipment" | "dumbbellRange">;
+
+/** What "Where are you training?" hands to `adjustForToday`: a place, minus items unticked for today. */
+export type TodayGear = { place: Pick<Place, "id" | "equipment" | "dumbbellRange">; without?: readonly EquipmentId[] };
+
 export type Exercise = {
   id: string;
   name: string;
@@ -163,6 +176,10 @@ export type SessionDraft = {
   exercises: SessionExercise[];
   /** Set when `adjustForToday` ran (W05). */
   todayEquipment?: EquipmentId[];
+  /** Place the draft was adjusted for (W32). Absent when adjusted with a plain equipment list. */
+  placeId?: string;
+  /** Dumbbell range of that place; progression of swapped exercises follows it. */
+  todayDumbbellRange?: DumbbellRange;
   adjustedForToday: boolean;
   notes: string[];
 };

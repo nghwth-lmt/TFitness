@@ -1,6 +1,6 @@
 import Dexie, { type DexieOptions, type Table } from "dexie";
 import { migrateProfile } from "../domain/equipment";
-import type { Plan, Profile, Session, SetLog } from "../domain";
+import type { Place, Plan, Profile, Session, SetLog } from "../domain";
 
 export const DB_NAME = "spotter-workout-plan";
 export const PROFILE_ID = "me";
@@ -8,11 +8,17 @@ export const PROFILE_ID = "me";
 /** Single local user: one profile row. */
 export type ProfileRow = Profile & { id: typeof PROFILE_ID };
 
+/** A stored place. `createdAt` keeps the list order stable (the first place is the oldest). */
+export type PlaceRow = Place & { createdAt: number };
+
+export const MIGRATED_PLACE_ID = "place-migrated";
+
 export class WorkoutDb extends Dexie {
   profile!: Table<ProfileRow, string>;
   plans!: Table<Plan, string>;
   sessions!: Table<Session, string>;
   setLogs!: Table<SetLog, string>;
+  places!: Table<PlaceRow, string>;
 
   constructor(name: string, options?: DexieOptions) {
     super(name, options);
@@ -30,6 +36,22 @@ export class WorkoutDb extends Dexie {
         await tx.table("plans").toCollection().modify((plan) => {
           if (plan.profile) plan.profile = migrateProfile(plan.profile);
         });
+      });
+    // v3 (PRD v1.3, W32): places. The single equipment choice of the profile becomes one default place.
+    this.version(3)
+      .stores({ places: "id" })
+      .upgrade(async (tx) => {
+        const row = (await tx.table("profile").get(PROFILE_ID)) as ProfileRow | undefined;
+        if (!row) return;
+        const place: PlaceRow = {
+          id: MIGRATED_PLACE_ID,
+          name: "My gym",
+          equipment: [...row.equipment],
+          isDefault: true,
+          createdAt: row.updatedAt,
+          ...(row.dumbbellRange ? { dumbbellRange: row.dumbbellRange } : {}),
+        };
+        await tx.table("places").put(place);
       });
   }
 }

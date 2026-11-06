@@ -1,10 +1,12 @@
 import { EXERCISES } from "../data/exercises";
-import type { Exercise, History, Plan, Profile, Rir, Session, SessionDraft, SetLog } from "../domain";
+import { MAX_PLACES } from "../config";
+import type { Exercise, History, Place, PlaceInput, Plan, Profile, Rir, Session, SessionDraft, SetLog } from "../domain";
 import { buildPlan } from "../engine/buildPlan";
 import { normalizeRir } from "../engine/progression";
 import { completedCount, completeSession, isNewBlockStart, rotateBlockIfDue } from "../engine/schedule";
+import { placeNameForEquipment, profileForPlace, validatePlaceInput } from "../engine/places";
 import { applySwap } from "../engine/substitution";
-import { PROFILE_ID, type WorkoutDb } from "./db";
+import { PROFILE_ID, type PlaceRow, type WorkoutDb } from "./db";
 
 /** Clock and id source are injected so tests are deterministic. */
 export type Deps = { now: () => number; newId: () => string };
@@ -31,9 +33,53 @@ export async function getHistory(db: WorkoutDb): Promise<History> {
   return { sessions, setLogs };
 }
 
+const toPlace = ({ createdAt: _c, ...place }: PlaceRow): Place => {
+  void _c;
+  return place;
+};
+
+const byAge = (a: PlaceRow, b: PlaceRow) => a.createdAt - b.createdAt || a.id.localeCompare(b.id);
+
+/** Saved places, oldest first (W32). */
+export async function listPlaces(db: WorkoutDb): Promise<Place[]> {
+  return (await db.places.toArray()).sort(byAge).map(toPlace);
+}
+
+export async function getDefaultPlace(db: WorkoutDb): Promise<Place | undefined> {
+  return (await listPlaces(db)).find((p) => p.isDefault);
+}
+
 /**
- * Setup and rebuild share this: the old active plan becomes `archived` (never deleted), the new
- * plan is `active`, and no set log is touched (AC14).
+ * Archives the active plan (never deleted), saves a new active one built for `place`, and mirrors the
+ * place gear into the stored profile. Set logs are not touched (AC14). Call inside a transaction on
+ * `profile` and `plans`.
+ */
+async function saveBuiltPlan(
+  db: WorkoutDb,
+  profile: Profile,
+  place: Place,
+  seed: number,
+  catalog: readonly Exercise[],
+  deps: Deps,
+): Promise<Plan> {
+  const plan = buildPlan(profile, catalog, seed, { createdAt: deps.now(), id: `plan-${deps.newId()}`, place });
+  await db.plans.where("status").equals("active").modify({ status: "archived" });
+  await db.plans.add(plan);
+  await db.profile.put({ ...profileForPlace(profile, place), id: PROFILE_ID });
+  return plan;
+}
+
+/** The stored profile and active plan seed, or undefined before Setup ran. */
+async function storedSetup(db: WorkoutDb): Promise<{ profile: Profile; seed: number } | undefined> {
+  const profile = await getProfile(db);
+  if (!profile) return undefined;
+  return { profile, seed: (await getActivePlan(db))?.seed ?? 0 };
+}
+
+/**
+ * Setup and rebuild share this: the old active plan becomes `archived`, the new plan is `active`,
+ * and no set log is touched (AC14). The plan is built for the default place (W32); the first build
+ * creates that place from the profile gear.
  */
 export async function buildAndSavePlan(
   db: WorkoutDb,
@@ -42,13 +88,112 @@ export async function buildAndSavePlan(
   seed: number,
   deps: Deps = defaultDeps,
 ): Promise<Plan> {
-  const plan = buildPlan(profile, catalog, seed, { createdAt: deps.now(), id: `plan-${deps.newId()}` });
-  await db.transaction("rw", db.profile, db.plans, async () => {
-    await db.plans.where("status").equals("active").modify({ status: "archived" });
-    await db.plans.add(plan);
-    await db.profile.put({ ...profile, id: PROFILE_ID });
+  return db.transaction("rw", db.profile, db.plans, db.places, async () => {
+    const rows = (await db.places.toArray()).sort(byAge);
+    let place = rows.find((p) => p.isDefault) ?? rows[0];
+    if (!place) {
+      place = { id: `place-${deps.newId()}`, name: placeNameForEquipment(profile.equipment), equipment: [...profile.equipment], isDefault: true, createdAt: deps.now(), ...(profile.dumbbellRange ? { dumbbellRange: profile.dumbbellRange } : {}) };
+      await db.places.add(place);
+    }
+    return saveBuiltPlan(db, profile, toPlace(place), seed, catalog, deps);
   });
-  return plan;
+}
+
+const TOO_MANY = `You can save up to ${MAX_PLACES} places. Remove one to add another.`;
+
+function checkNameFree(name: string, others: readonly PlaceRow[]) {
+  if (others.some((p) => p.name.toLowerCase() === name.toLowerCase())) throw new Error(`A place named "${name}" already exists`);
+}
+
+/** Adds a place (at most 3). The first place ever saved is the default; later ones are not. */
+export async function addPlace(db: WorkoutDb, input: PlaceInput, deps: Deps = defaultDeps): Promise<Place> {
+  const problem = validatePlaceInput(input);
+  if (problem) throw new RangeError(problem);
+  return db.transaction("rw", db.places, async () => {
+    const rows = await db.places.toArray();
+    if (rows.length >= MAX_PLACES) throw new Error(TOO_MANY);
+    const name = input.name.trim();
+    checkNameFree(name, rows);
+    const row: PlaceRow = {
+      id: `place-${deps.newId()}`,
+      name,
+      equipment: [...input.equipment],
+      isDefault: rows.length === 0,
+      createdAt: deps.now(),
+      ...(input.dumbbellRange ? { dumbbellRange: { ...input.dumbbellRange } } : {}),
+    };
+    await db.places.add(row);
+    return toPlace(row);
+  });
+}
+
+/**
+ * Edits a place. Changing the gear of the default place rebuilds the plan for it (the plan must follow
+ * the default gear); a rename or an edit of another place never does.
+ */
+export async function updatePlace(
+  db: WorkoutDb,
+  id: string,
+  patch: Partial<PlaceInput>,
+  catalog: readonly Exercise[] = EXERCISES,
+  deps: Deps = defaultDeps,
+): Promise<Place> {
+  return db.transaction("rw", db.profile, db.plans, db.places, async () => {
+    const rows = await db.places.toArray();
+    const found = rows.find((p) => p.id === id);
+    if (!found) throw new Error(`Place ${id} not found`);
+    const next: PlaceRow = { ...found, ...patch, name: (patch.name ?? found.name).trim() };
+    if (patch.dumbbellRange === undefined && "dumbbellRange" in patch) delete next.dumbbellRange;
+    const problem = validatePlaceInput(next);
+    if (problem) throw new RangeError(problem);
+    checkNameFree(next.name, rows.filter((p) => p.id !== id));
+    await db.places.put(next);
+    const gearChanged = JSON.stringify([found.equipment, found.dumbbellRange ?? null]) !== JSON.stringify([next.equipment, next.dumbbellRange ?? null]);
+    if (next.isDefault && gearChanged) {
+      const setup = await storedSetup(db);
+      if (setup) await saveBuiltPlan(db, setup.profile, toPlace(next), setup.seed, catalog, deps);
+    }
+    return toPlace(next);
+  });
+}
+
+/** Makes `id` the default place and rebuilds the plan for its gear. Returns the new plan, or undefined when nothing changed. */
+export async function setDefaultPlace(
+  db: WorkoutDb,
+  id: string,
+  catalog: readonly Exercise[] = EXERCISES,
+  deps: Deps = defaultDeps,
+): Promise<Plan | undefined> {
+  return db.transaction("rw", db.profile, db.plans, db.places, async () => {
+    const rows = await db.places.toArray();
+    const target = rows.find((p) => p.id === id);
+    if (!target) throw new Error(`Place ${id} not found`);
+    if (target.isDefault && rows.filter((p) => p.isDefault).length === 1) return undefined;
+    for (const r of rows) await db.places.update(r.id, { isDefault: r.id === id });
+    const setup = await storedSetup(db);
+    return setup ? saveBuiltPlan(db, setup.profile, toPlace({ ...target, isDefault: true }), setup.seed, catalog, deps) : undefined;
+  });
+}
+
+/** Removes a place. The last place cannot go. Removing the default hands the default to the oldest left and rebuilds. */
+export async function removePlace(
+  db: WorkoutDb,
+  id: string,
+  catalog: readonly Exercise[] = EXERCISES,
+  deps: Deps = defaultDeps,
+): Promise<void> {
+  await db.transaction("rw", db.profile, db.plans, db.places, async () => {
+    const rows = (await db.places.toArray()).sort(byAge);
+    const found = rows.find((p) => p.id === id);
+    if (!found) throw new Error(`Place ${id} not found`);
+    if (rows.length <= 1) throw new Error("Keep at least one place");
+    await db.places.delete(id);
+    if (!found.isDefault) return;
+    const heir = rows.find((p) => p.id !== id)!;
+    await db.places.update(heir.id, { isDefault: true });
+    const setup = await storedSetup(db);
+    if (setup) await saveBuiltPlan(db, setup.profile, toPlace({ ...heir, isDefault: true }), setup.seed, catalog, deps);
+  });
 }
 
 export function getInProgressSession(db: WorkoutDb): Promise<Session | undefined> {

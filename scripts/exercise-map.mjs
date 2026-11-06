@@ -181,3 +181,118 @@ export function refinePattern(pattern, ex) {
  * Order inside a bucket: easier level first, then shorter name, then id. Every bucket keeps at least one.
  */
 export const BUCKET_MAX = 4;
+
+/**
+ * Standard names (W36). Keyed by source id, so a rename never changes which exercise it is. The old name
+ * is in the trailing comment. Patterns, equipment and avoid flags are still derived from the SOURCE name.
+ * Spelling rules: "Push-up", "Pull-up", "Step-up" (hyphen, lower-case "up"), singular movement names,
+ * "Fly" not "Flye(s)", "Lever" not "Leverage", "Stability Ball" not "Exercise Ball".
+ */
+export const NAME_OVERRIDES = {
+  "Pushups": "Push-up", // Pushups
+  "Pullups": "Pull-up", // Pullups
+  "Push-Up_Wide": "Wide Push-up", // Push-Up Wide
+  "Push-Ups_-_Close_Triceps_Position": "Close-Grip Push-up", // Push-Ups - Close Triceps Position
+  "Push-Ups_With_Feet_On_An_Exercise_Ball": "Stability Ball Push-up", // Push-Ups With Feet On An Exercise Ball
+  "Pushups_Close_and_Wide_Hand_Positions": "Close-and-Wide Push-up", // Pushups (Close and Wide Hand Positions)
+  "Incline_Push-Up": "Incline Push-up", // Incline Push-Up
+  "Incline_Push-Up_Medium": "Incline Push-up (Medium Grip)", // Incline Push-Up Medium
+  "Incline_Push-Up_Wide": "Incline Push-up (Wide Grip)", // Incline Push-Up Wide
+  "Clock_Push-Up": "Clock Push-up", // Clock Push-Up
+  "Decline_Push-Up": "Decline Push-up", // Decline Push-Up
+  "Suspended_Push-Up": "Suspended Push-up", // Suspended Push-Up
+  "Handstand_Push-Ups": "Handstand Push-up", // Handstand Push-Ups
+  "Close-Grip_Push-Up_off_of_a_Dumbbell": "Close-Grip Push-up on Dumbbell", // Close-Grip Push-Up off of a Dumbbell
+  "Band_Assisted_Pull-Up": "Band-Assisted Pull-up", // Band Assisted Pull-Up
+  "Scapular_Pull-Up": "Scapular Pull-up", // Scapular Pull-Up
+  "V-Bar_Pullup": "V-Bar Pull-up", // V-Bar Pullup
+  "Chin-Up": "Chin-up", // Chin-Up
+  "Leg_Extensions": "Leg Extension", // Leg Extensions
+  "Lying_Leg_Curls": "Lying Leg Curl", // Lying Leg Curls
+  "Hammer_Curls": "Hammer Curl", // Hammer Curls
+  "Incline_Hammer_Curls": "Incline Hammer Curl", // Incline Hammer Curls
+  "Concentration_Curls": "Concentration Curl", // Concentration Curls
+  "Flexor_Incline_Dumbbell_Curls": "Flexor Incline Dumbbell Curl", // Flexor Incline Dumbbell Curls
+  "Barbell_Curls_Lying_Against_An_Incline": "Barbell Curl Lying on Incline", // Barbell Curls Lying Against An Incline
+  "Dumbbell_Lunges": "Dumbbell Lunge", // Dumbbell Lunges
+  "Dumbbell_Bicep_Curl": "Dumbbell Biceps Curl", // Dumbbell Bicep Curl
+  "Machine_Bicep_Curl": "Machine Biceps Curl", // Machine Bicep Curl
+  "Tricep_Dumbbell_Kickback": "Dumbbell Triceps Kickback", // Tricep Dumbbell Kickback
+  "Cable_Deadlifts": "Cable Deadlift", // Cable Deadlifts
+  "Rack_Pulls": "Rack Pull", // Rack Pulls
+  "Underhand_Cable_Pulldowns": "Underhand Cable Pulldown", // Underhand Cable Pulldowns
+  "Seated_Cable_Rows": "Seated Cable Row", // Seated Cable Rows
+  "Standing_Calf_Raises": "Standing Calf Raise", // Standing Calf Raises
+  "Narrow_Stance_Hack_Squats": "Narrow-Stance Hack Squat", // Narrow Stance Hack Squats
+  "Narrow_Stance_Squats": "Narrow-Stance Squat", // Narrow Stance Squats
+  "Narrow_Stance_Leg_Press": "Narrow-Stance Leg Press", // Narrow Stance Leg Press
+  "Seated_Good_Mornings": "Seated Good Morning", // Seated Good Mornings
+  "Smith_Machine_Reverse_Calf_Raises": "Smith Machine Reverse Calf Raise", // Smith Machine Reverse Calf Raises
+  "Barbell_Step_Ups": "Barbell Step-up", // Barbell Step Ups
+  "Dumbbell_Step_Ups": "Dumbbell Step-up", // Dumbbell Step Ups
+  "Weighted_Crunches": "Weighted Crunch", // Weighted Crunches
+  "Reverse_Flyes": "Reverse Fly", // Reverse Flyes
+  "Dumbbell_Flyes": "Dumbbell Fly", // Dumbbell Flyes
+  "Incline_Dumbbell_Flyes": "Incline Dumbbell Fly", // Incline Dumbbell Flyes
+  "Decline_Dumbbell_Flyes": "Decline Dumbbell Fly", // Decline Dumbbell Flyes
+  "Incline_Dumbbell_Flyes_-_With_A_Twist": "Incline Dumbbell Fly with Twist", // Incline Dumbbell Flyes - With A Twist
+  "Reverse_Machine_Flyes": "Reverse Machine Fly", // Reverse Machine Flyes
+  "Flat_Bench_Cable_Flyes": "Flat Bench Cable Fly", // Flat Bench Cable Flyes
+  "Incline_Cable_Flye": "Incline Cable Fly", // Incline Cable Flye
+  "Butt_Lift_Bridge": "Glute Bridge", // Butt Lift (Bridge)
+  "Single_Leg_Glute_Bridge": "Single-Leg Glute Bridge", // Single Leg Glute Bridge
+  "Physioball_Hip_Bridge": "Stability Ball Hip Bridge", // Physioball Hip Bridge
+  "Ball_Leg_Curl": "Stability Ball Leg Curl", // Ball Leg Curl
+  "Exercise_Ball_Crunch": "Stability Ball Crunch", // Exercise Ball Crunch
+  "Crunch_-_Legs_On_Exercise_Ball": "Stability Ball Leg Crunch", // Crunch - Legs On Exercise Ball
+  "Leverage_Chest_Press": "Lever Chest Press", // Leverage Chest Press
+  "Leverage_Decline_Chest_Press": "Lever Decline Chest Press", // Leverage Decline Chest Press
+  "Leverage_High_Row": "Lever High Row", // Leverage High Row
+  "Leverage_Incline_Chest_Press": "Lever Incline Chest Press", // Leverage Incline Chest Press
+  "Leverage_Iso_Row": "Lever Iso Row", // Leverage Iso Row
+  "Leverage_Shoulder_Press": "Lever Shoulder Press", // Leverage Shoulder Press
+  "Hammer_Grip_Incline_DB_Bench_Press": "Hammer-Grip Incline Dumbbell Press", // Hammer Grip Incline DB Bench Press
+  "Bench_Press_-_Powerlifting": "Powerlifting Bench Press", // Bench Press - Powerlifting
+  "Barbell_Bench_Press_-_Medium_Grip": "Barbell Bench Press", // Barbell Bench Press - Medium Grip
+  "Barbell_Incline_Bench_Press_-_Medium_Grip": "Barbell Incline Bench Press", // Barbell Incline Bench Press - Medium Grip
+  "Cocoons": "Cocoon Crunch", // Cocoons
+  "One_Arm_Lat_Pulldown": "One-Arm Lat Pulldown", // One Arm Lat Pulldown
+  "One_Arm_Floor_Press": "One-Arm Floor Press", // One Arm Floor Press
+  "One_Leg_Barbell_Squat": "One-Leg Barbell Squat", // One Leg Barbell Squat
+  "Stiff_Leg_Barbell_Good_Morning": "Stiff-Leg Barbell Good Morning", // Stiff Leg Barbell Good Morning
+  "Straight_Bar_Bench_Mid_Rows": "Straight-Bar Bench Mid Row", // Straight Bar Bench Mid Rows
+  "Smith_Single-Leg_Split_Squat": "Smith Machine Single-Leg Split Squat", // Smith Single-Leg Split Squat
+  "Dips_-_Chest_Version": "Chest Dip", // Dips - Chest Version
+  "Dips_-_Triceps_Version": "Triceps Dip", // Dips - Triceps Version
+  "Ring_Dips": "Ring Dip", // Ring Dips
+  "Bench_Dips": "Bench Dip", // Bench Dips
+  "Hyperextensions_With_No_Hyperextension_Bench": "Hyperextension (No Bench)", // Hyperextensions With No Hyperextension Bench
+  "Calf_Press_On_The_Leg_Press_Machine": "Calf Press on Leg Press Machine", // Calf Press On The Leg Press Machine
+  "Seated_One-arm_Cable_Pulley_Rows": "Seated One-Arm Cable Pulley Row", // Seated One-arm Cable Pulley Rows
+  "Machine_Shoulder_Military_Press": "Machine Shoulder Press", // Machine Shoulder (Military) Press
+  "Thigh_Abductor": "Hip Abduction Machine", // Thigh Abductor
+  "Thigh_Adductor": "Hip Adduction Machine", // Thigh Adductor
+  "Reverse_Plate_Curls": "Reverse Plate Curl", // Reverse Plate Curls
+  "Close-Grip_EZ_Bar_Curl": "Close-Grip EZ-Bar Curl", // Close-Grip EZ Bar Curl
+  "Decline_EZ_Bar_Triceps_Extension": "Decline EZ-Bar Triceps Extension", // Decline EZ Bar Triceps Extension
+  "EZ-Bar_Skullcrusher": "EZ-Bar Skull Crusher", // EZ-Bar Skullcrusher
+  "Front_Squats_With_Two_Kettlebells": "Kettlebell Front Squat (Two Kettlebells)", // Front Squats With Two Kettlebells
+  "One-Arm_Overhead_Kettlebell_Squats": "One-Arm Overhead Kettlebell Squat", // One-Arm Overhead Kettlebell Squats
+  "Butterfly": "Pec Deck Fly", // Butterfly
+  "Pull_Through": "Cable Pull-Through", // Pull Through
+  "Machine_Bench_Press": "Machine Chest Press", // Machine Bench Press
+  "Weighted_Ball_Hyperextension": "Stability Ball Hyperextension", // Weighted Ball Hyperextension
+  "Floor_Press": "Barbell Floor Press", // Floor Press
+};
+
+/** Words kept lower-case inside a name when the source capitalises them ("Squat To A Bench"). */
+const SMALL_WORDS = new Set(["a", "an", "and", "at", "by", "for", "from", "in", "of", "off", "on", "over", "the", "to", "with"]);
+
+/** The name shown in the app: an explicit override wins, otherwise only small words are lower-cased. */
+export function standardName(id, name) {
+  if (Object.hasOwn(NAME_OVERRIDES, id)) return NAME_OVERRIDES[id];
+  return name
+    .split(" ")
+    .map((w, i, arr) => (i > 0 && arr[i - 1] !== "-" && SMALL_WORDS.has(w.toLowerCase()) ? w.toLowerCase() : w))
+    .join(" ");
+}

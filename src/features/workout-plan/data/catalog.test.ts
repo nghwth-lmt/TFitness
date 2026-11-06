@@ -32,7 +32,7 @@ describe("catalog shape (W30)", () => {
   });
 
   it("getExercise finds by the source id", () => {
-    expect(getExercise("Pushups")?.name).toBe("Pushups");
+    expect(getExercise("Pushups")?.name).toBe("Push-up") // W36: standard name, id unchanged;
     expect(getExercise("does-not-exist")).toBeUndefined();
   });
 });
@@ -101,5 +101,20 @@ describe("flags (AC05)", () => {
   });
   it("behind-the-neck presses carry the shoulder flag", () => {
     for (const e of EXERCISES.filter((x) => /behind the neck|behind neck/i.test(x.name))) expect(e.avoidFlags, e.id).toContain("shoulder");
+  });
+});
+
+describe("standard names (W36)", () => {
+  it("every exercise has a distinct name, spelled the standard way", () => {
+    const names = EXERCISES.map((e) => e.name.toLowerCase());
+    expect(new Set(names).size).toBe(names.length);
+    for (const e of EXERCISES) {
+      expect(e.name, e.id).not.toMatch(/\bpushups?\b|\bpullups?\b|\bflyes?\b|\bleverage\b|\bstep ups?\b|\bexercise ball\b/i);
+    }
+  });
+
+  it("ids did not move when names did", () => {
+    expect(getExercise("Pullups")?.name).toBe("Pull-up");
+    expect(getExercise("Barbell_Bench_Press_-_Medium_Grip")?.name).toBe("Barbell Bench Press");
   });
 });

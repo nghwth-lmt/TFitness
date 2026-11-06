@@ -71,3 +71,7 @@ export const SPLIT_BY_DAYS: Record<number, SplitId> = {
   5: "ppl_ul",
   6: "ppl_ppl",
 };
+
+/** Saved places (W32). */
+export const MAX_PLACES = 3;
+export const MAX_PLACE_NAME = 30;

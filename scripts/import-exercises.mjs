@@ -160,6 +160,23 @@ for (const list of buckets.values()) {
 }
 for (let i = included.length - 1; i >= 0; i--) if (dropped.has(included[i].id)) included.splice(i, 1);
 included.sort((a, b) => cmp(a.id, b.id));
+
+// ---- standard names (W36): after the bucket cut, so renaming never changes which exercises are kept ----
+const renamed = [];
+for (const e of included) {
+  const to = M.standardName(e.id, e.name);
+  if (to !== e.name) renamed.push({ id: e.id, from: e.name, to });
+  e.name = to;
+}
+const seenNames = new Map();
+for (const e of included) {
+  const key = e.name.toLowerCase();
+  if (seenNames.has(key)) {
+    console.error(`Two exercises would get the same name "${e.name}": ${seenNames.get(key)} and ${e.id}. Fix NAME_OVERRIDES in scripts/exercise-map.mjs.`);
+    process.exit(1);
+  }
+  seenNames.set(key, e.id);
+}
 excluded.sort((a, b) => cmp(a.id, b.id));
 
 // ---- images ----
@@ -219,6 +236,8 @@ lines.push("", "## Imported by pattern", "", "| Pattern | Exercises |", "|---|--
 for (const p of [...new Set(included.map((e) => e.pattern))].sort()) lines.push(`| ${p} | ${included.filter((e) => e.pattern === p).length} |`);
 const reasons = new Map();
 for (const e of excluded) reasons.set(e.reason, (reasons.get(e.reason) ?? 0) + 1);
+lines.push("", `## Renamed exercises (W36)`, "", `${renamed.length} of ${included.length} exercises have a standard name. The id never changes.`, "");
+for (const r of renamed) lines.push(`- \`${r.id}\`: "${r.from}" -> "${r.to}"`);
 lines.push("", "## Excluded by reason", "", "| Reason | Count |", "|---|---|");
 for (const [r, n] of [...reasons].sort((a, b) => b[1] - a[1] || cmp(a[0], b[0]))) lines.push(`| ${r} | ${n} |`);
 lines.push("", "## Excluded exercises (strength and powerlifting candidates only)", "");

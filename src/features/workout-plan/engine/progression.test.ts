@@ -6,8 +6,15 @@ import { FIRST_TIME_HINT, MAX_WEIGHT_HINT, STALL_HINT, HARDER_VARIATION_HINT, no
 import { nextSession } from "./schedule";
 
 const RANGE: RepRange = { min: 6, max: 10 };
+/** WL-15 added `reason` and `lastTime` to the result; they have their own tests (progressionReason.test.ts). */
+const core = <T extends { reason?: unknown; lastTime?: unknown }>(p: T): Omit<T, "reason" | "lastTime"> => {
+  const { reason: _r, lastTime: _l, ...rest } = p;
+  void _r;
+  void _l;
+  return rest;
+};
 const prog = (l: SetLog[], r: RepRange, t: LoadType, d?: DumbbellRange) =>
-  progression(t === "bodyweight" ? "Pushups" : "Barbell_Bench_Press_-_Medium_Grip", l, r, t, d);
+  core(progression(t === "bodyweight" ? "Pushups" : "Barbell_Bench_Press_-_Medium_Grip", l, r, t, d));
 let n = 0;
 
 /** One finished session of `exerciseId` at time `t`; `sets` are [kg, reps, rir?] tuples. */
@@ -167,7 +174,7 @@ describe("progressionFromHistory", () => {
         ...logs("s1", 100, [[99, 1]], "Barbell_Squat"),
       ],
     };
-    expect(progressionFromHistory("Barbell_Bench_Press_-_Medium_Grip", history, RANGE, "barbell")).toEqual({ targetKg: 42.5 });
+    expect(core(progressionFromHistory("Barbell_Bench_Press_-_Medium_Grip", history, RANGE, "barbell"))).toEqual({ targetKg: 42.5 });
   });
 });
 

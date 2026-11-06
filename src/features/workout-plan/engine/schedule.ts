@@ -25,6 +25,8 @@ export function nextSession(plan: Plan, history: History, catalog: readonly Exer
         targetKg: p.targetKg,
         ...(p.targetReps !== undefined ? { targetReps: p.targetReps } : {}),
         ...(p.hint !== undefined ? { hint: p.hint } : {}),
+        reason: p.reason,
+        lastTime: p.lastTime,
       };
     }),
   };

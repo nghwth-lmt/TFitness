@@ -155,6 +155,41 @@ export type Plan = {
   createdAt: number;
 };
 
+/** Why today's target is what it is (W33). The UI turns the code into a sentence; params fill the blanks. */
+export const REASON_CODES = ["first_time", "hold", "increase", "bodyweight_rep", "stall"] as const;
+export type ReasonCode = (typeof REASON_CODES)[number];
+export type ProgressionReason = {
+  code: ReasonCode;
+  params: {
+    /** Top of the rep range (hold, increase). */
+    max?: number;
+    /** Bottom of the rep range (stall). */
+    min?: number;
+    /** kg added (increase). */
+    n?: number;
+    /** Target reps (bodyweight_rep, and first_time for a bodyweight exercise). */
+    reps?: number;
+    /** hold: the dumbbell range has no heavier step. */
+    atRangeTop?: boolean;
+    /** bodyweight_rep: the 15-rep cap is reached, suggest a harder variation. */
+    capped?: boolean;
+    /** first_time: the exercise has no weight. */
+    bodyweight?: boolean;
+  };
+};
+
+/** The latest finished session of an exercise, as data. The UI writes "8 · 8 · 7 x 20 kg". */
+export type LastTime = {
+  /** epoch ms of the last set */
+  at: number;
+  /** Reps in set order. */
+  reps: number[];
+  /** Heaviest kg of the session; null for a bodyweight exercise. */
+  kg: number | null;
+  /** Every set used the same kg. */
+  sameKg: boolean;
+};
+
 export type SessionExercise = {
   exerciseId: string;
   slot: string;
@@ -167,6 +202,10 @@ export type SessionExercise = {
   targetReps?: number;
   restSec: number;
   hint?: string;
+  /** Exactly one reason for the target (W33). Absent only in sessions saved before it existed. */
+  reason?: ProgressionReason;
+  /** Absent the first time the exercise is trained. */
+  lastTime?: LastTime | null;
 };
 
 export type SessionDraft = {

@@ -34,12 +34,16 @@ function withProgression(base: SessionExercise, ex: Exercise, profile: Profile, 
   const rest: SessionExercise = { ...base };
   delete rest.hint;
   delete rest.targetReps;
+  delete rest.reason;
+  delete rest.lastTime;
   return {
     ...rest,
     exerciseId: ex.id,
     targetKg: p.targetKg,
     ...(p.targetReps !== undefined ? { targetReps: p.targetReps } : {}),
     ...(p.hint !== undefined ? { hint: p.hint } : {}),
+    reason: p.reason,
+    lastTime: p.lastTime,
   };
 }
 

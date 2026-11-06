@@ -1,6 +1,6 @@
 import { LOAD_STEP_KG, REST_ADJUST_SEC, REST_MAX_SEC, REST_MIN_SEC, WARMUP_MINUTES, WARMUP_SET_REPS, WARMUP_SET_SHARE } from "../config";
 import { EXERCISES } from "../data/exercises";
-import type { Exercise, LoadType, Profile, RepRange, Rir, Session, SetLog, SlotRole } from "../domain";
+import type { Exercise, LastTime, LoadType, ProgressionReason, Profile, RepRange, Rir, Session, SetLog, SlotRole } from "../domain";
 import { normalizeRir } from "../engine/progression";
 import { exerciseInfo, type ExerciseInfo } from "./exerciseInfo";
 
@@ -23,6 +23,10 @@ export type PlayerExercise = ExerciseInfo & {
   targetKg: number | null;
   targetReps?: number;
   hint?: string;
+  /** Exactly one reason for today's target (W33). The UI turns the code into a sentence. */
+  reason: ProgressionReason;
+  /** The line "Last time: 8 · 8 · 7 x 20 kg" as data. Null the first time (no line is shown). */
+  lastTimeLine: LastTime | null;
   loadType: LoadType;
   /** Weight stepper size in kg. null = bodyweight (no weight). */
   kgStep: number | null;
@@ -77,6 +81,13 @@ function kgStepFor(loadType: LoadType, profile?: Pick<Profile, "dumbbellRange">)
   return LOAD_STEP_KG[loadType];
 }
 
+/** A session saved before reasons existed: derive the one reason from the target. */
+function fallbackReason(e: Session["exercises"][number], loadType: LoadType): ProgressionReason {
+  if (e.targetKg === null && loadType !== "bodyweight") return { code: "first_time", params: {} };
+  if (loadType === "bodyweight") return { code: "bodyweight_rep", params: { reps: e.targetReps ?? e.repRange.min } };
+  return { code: "hold", params: { max: e.repRange.max } };
+}
+
 /** Turns a session exercise into what the player needs (name, cue, step). */
 export function toPlayerExercise(
   e: Session["exercises"][number],
@@ -97,6 +108,8 @@ export function toPlayerExercise(
     targetKg: e.targetKg,
     ...(e.targetReps !== undefined ? { targetReps: e.targetReps } : {}),
     ...(e.hint !== undefined ? { hint: e.hint } : {}),
+    reason: e.reason ?? fallbackReason(e, loadType),
+    lastTimeLine: e.lastTime ?? null,
     loadType,
     kgStep: kgStepFor(loadType, profile),
     ...exerciseInfo(ex),

@@ -118,8 +118,9 @@ describe("logging sets (AC08 data, AC09)", () => {
     await expect(logSet(db, { sessionId: s.id, exerciseId: "not_in_session", setIndex: 0, kg: 1, reps: 1 }, deps)).rejects.toThrow(/not in this session/);
     await expect(logSet(db, { sessionId: "nope", exerciseId: "x", setIndex: 0, kg: 1, reps: 1 }, deps)).rejects.toThrow(/not found/);
     const ex = s.exercises[0].exerciseId;
+    await logSet(db, { sessionId: s.id, exerciseId: ex, setIndex: 0, kg: 1, reps: 1 }, deps);
     await finishSession(db, s.id, deps);
-    await expect(logSet(db, { sessionId: s.id, exerciseId: ex, setIndex: 0, kg: 1, reps: 1 }, deps)).rejects.toThrow(/not in progress/);
+    await expect(logSet(db, { sessionId: s.id, exerciseId: ex, setIndex: 1, kg: 1, reps: 1 }, deps)).rejects.toThrow(/not in progress/);
   });
 
   it("rejects negative or fractional reps and negative kg", async () => {
@@ -187,6 +188,7 @@ describe("finish, discard and the loop (AC06, AC12)", () => {
   it("finishing a session of an archived plan does not move the new plan", async () => {
     const { db, plan, deps } = await setup();
     const s = await startSession(db, nextSession(plan, await getHistory(db)), deps);
+    await logSet(db, { sessionId: s.id, exerciseId: s.exercises[0].exerciseId, setIndex: 0, kg: 40, reps: 8 }, deps);
     await buildAndSavePlan(db, profile({ sessionMinutes: 60, updatedAt: 2 }), EXERCISES, 6, deps);
     await finishSession(db, s.id, deps);
     expect((await getActivePlan(db))?.cursor).toBe(0);

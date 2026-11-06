@@ -1,4 +1,4 @@
-import { MIN_TRAINING_DAYS } from "../config";
+import { MAX_SPLIT_DAYS, MIN_TRAINING_DAYS } from "../config";
 import { LEVELS, type Exercise, type Plan, type Profile, type SessionTemplate, type SplitId, type TemplateSlot } from "../domain";
 import { availableExercises, levelAtMost } from "./availability";
 import { createRng } from "./prng";
@@ -107,6 +107,7 @@ export function buildPlan(
   options: BuildOptions = {},
 ): Plan {
   if (profile.trainingDays.length < MIN_TRAINING_DAYS) throw new RangeError("Pick at least 2 days");
+  if (profile.trainingDays.length > MAX_SPLIT_DAYS) throw new RangeError("Pick at most 6 days");
   const split = splitForDays(profile.trainingDays.length);
   const createdAt = options.createdAt ?? profile.updatedAt;
   return {

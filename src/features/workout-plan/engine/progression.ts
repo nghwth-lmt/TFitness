@@ -97,6 +97,16 @@ export function progressionFromHistory(
   dumbbellRange?: DumbbellRange,
 ): ProgressionResult {
   const completed = new Set(history.sessions.filter((s) => s.status === "completed").map((s) => s.id));
-  const logs = history.setLogs.filter((l) => l.exerciseId === exerciseId && completed.has(l.sessionId));
+  const own = history.setLogs.filter((l) => l.exerciseId === exerciseId && completed.has(l.sessionId));
+  // A session finished early (W28) can hold fewer sets of this exercise than planned. Those sets do not
+  // show that the whole top of the range was reached, so they do not move the load or flag a stall.
+  const planned = new Map<string, number>();
+  for (const s of history.sessions) {
+    const e = s.exercises.find((x) => x.exerciseId === exerciseId);
+    if (e && completed.has(s.id)) planned.set(s.id, e.targetSets);
+  }
+  const count = new Map<string, number>();
+  for (const l of own) count.set(l.sessionId, (count.get(l.sessionId) ?? 0) + 1);
+  const logs = own.filter((l) => (count.get(l.sessionId) ?? 0) >= (planned.get(l.sessionId) ?? 0));
   return progression(exerciseId, logs, repRange, loadType, dumbbellRange);
 }

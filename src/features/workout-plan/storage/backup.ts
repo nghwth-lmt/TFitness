@@ -13,6 +13,7 @@ import {
   type Session,
   type SetLog,
 } from "../domain";
+import { MAX_SPLIT_DAYS } from "../config";
 import { PROFILE_ID, type WorkoutDb } from "./db";
 import { defaultDeps, type Deps } from "./repository";
 
@@ -69,7 +70,7 @@ const inList = (list: readonly unknown[], v: unknown) => list.includes(v);
 
 function checkProfile(p: unknown, path: string, errors: string[]) {
   if (!isObj(p)) return errors.push(`${path} must be an object`);
-  if (!Array.isArray(p.trainingDays) || !p.trainingDays.every((d) => inList(WEEKDAYS, d))) errors.push(`${path}.trainingDays invalid`);
+  if (!Array.isArray(p.trainingDays) || !p.trainingDays.every((d) => inList(WEEKDAYS, d)) || p.trainingDays.length > MAX_SPLIT_DAYS) errors.push(`${path}.trainingDays invalid (2 to ${MAX_SPLIT_DAYS} days)`);
   if (!inList(SESSION_MINUTES, p.sessionMinutes)) errors.push(`${path}.sessionMinutes must be one of ${SESSION_MINUTES.join("/")}`);
   if (!Array.isArray(p.equipment) || !p.equipment.every((e) => inList(EQUIPMENT_IDS, e))) errors.push(`${path}.equipment invalid`);
   if (!inList(GOALS, p.goal)) errors.push(`${path}.goal invalid`);
@@ -180,6 +181,20 @@ const TERMINAL = ["completed", "abandoned"];
  *   abandoned, sets kept); the profile is replaced only by a newer or equal one.
  */
 export async function importJson(db: WorkoutDb, text: string, deps: Deps = defaultDeps): Promise<ImportResult> {
+  return runImport(db, text, deps, false);
+}
+
+/**
+ * Same merge as `importJson`, but rolled back at the end: returns what the import would add, update and
+ * skip, so the confirm sheet can show the number of sessions and sets (W23). Nothing is written.
+ */
+export async function previewImport(db: WorkoutDb, text: string, deps: Deps = defaultDeps): Promise<ImportResult> {
+  return runImport(db, text, deps, true);
+}
+
+class DryRunDone extends Error {}
+
+async function runImport(db: WorkoutDb, text: string, deps: Deps, dryRun: boolean): Promise<ImportResult> {
   let raw: unknown;
   try {
     raw = JSON.parse(text);
@@ -195,7 +210,8 @@ export async function importJson(db: WorkoutDb, text: string, deps: Deps = defau
   const skipped = { plans: 0, sessions: 0, setLogs: 0 };
   let abandonedInProgress = 0;
 
-  await db.transaction("rw", db.profile, db.plans, db.sessions, db.setLogs, async () => {
+  try {
+    await db.transaction("rw", db.profile, db.plans, db.sessions, db.setLogs, async () => {
     const localSessions = new Map((await db.sessions.toArray()).map((s) => [s.id, s]));
     const terminalBefore = new Set([...localSessions.values()].filter((s) => TERMINAL.includes(s.status)).map((s) => s.id));
 
@@ -251,7 +267,11 @@ export async function importJson(db: WorkoutDb, text: string, deps: Deps = defau
     if (file.profile && (!local || file.profile.updatedAt >= local.updatedAt)) {
       await db.profile.put({ ...file.profile, id: PROFILE_ID });
     }
+    if (dryRun) throw new DryRunDone();
   });
+  } catch (e) {
+    if (!(e instanceof DryRunDone)) throw e;
+  }
 
   return { ok: true, added, updated, skipped, abandonedInProgress };
 }

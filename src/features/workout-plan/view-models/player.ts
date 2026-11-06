@@ -2,6 +2,7 @@ import { LOAD_STEP_KG, REST_ADJUST_SEC, REST_MAX_SEC, REST_MIN_SEC, WARMUP_MINUT
 import { EXERCISES } from "../data/exercises";
 import type { Exercise, LoadType, Profile, RepRange, Rir, Session, SetLog, SlotRole } from "../domain";
 import { normalizeRir } from "../engine/progression";
+import { exerciseInfo, type ExerciseInfo } from "./exerciseInfo";
 
 /**
  * Workout player state machine (pure). `working` -> log set -> `resting` -> (restEndsAt reached)
@@ -10,7 +11,7 @@ import { normalizeRir } from "../engine/progression";
  * visibilitychange). There are no timers here, so a locked screen or a background tab is harmless.
  */
 
-export type PlayerExercise = {
+export type PlayerExercise = ExerciseInfo & {
   exerciseId: string;
   slot: string;
   name: string;
@@ -98,6 +99,7 @@ export function toPlayerExercise(
     ...(e.hint !== undefined ? { hint: e.hint } : {}),
     loadType,
     kgStep: kgStepFor(loadType, profile),
+    ...exerciseInfo(ex),
   };
 }
 
@@ -179,6 +181,11 @@ export function progressOf(state: PlayerState): { doneSets: number; totalSets: n
 
 export function canFinish(state: PlayerState): boolean {
   return state.status === "finished";
+}
+
+/** "Finish now" in the leave sheet (W28): allowed once at least one set is logged and sets remain. */
+export function canFinishEarly(state: PlayerState): boolean {
+  return state.status !== "finished" && state.logs.length > 0;
 }
 
 /** Whole seconds left on the rest clock, from the time you pass in (rounded up). */

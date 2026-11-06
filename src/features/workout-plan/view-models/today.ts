@@ -3,6 +3,7 @@ import type { EquipmentId, Exercise, Plan, Profile, RepRange, Session, SessionDr
 import { estimateMinutes } from "../engine/estimateMinutes";
 import { completedCount, isNewBlockStart, nextSession } from "../engine/schedule";
 import { adjustForToday } from "../engine/substitution";
+import { exerciseInfo } from "./exerciseInfo";
 
 const DAY_MS = 86_400_000;
 const SUNDAY_FIRST: Weekday[] = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
@@ -28,6 +29,9 @@ export type TodayExerciseRow = {
   slot: string;
   name: string;
   cue: string;
+  /** First frame for the list thumbnail; "" when the exercise is no longer in the catalog. */
+  thumbnail: string;
+  images: string[];
   sets: number;
   repRange: RepRange;
   targetKg: number | null;
@@ -124,6 +128,8 @@ export function buildTodayVM(input: TodayInput): TodayVM {
         slot: e.slot,
         name: ex?.name ?? e.exerciseId,
         cue: ex?.cue ?? "",
+        thumbnail: ex?.images[0] ?? "",
+        images: exerciseInfo(ex).images,
         sets: e.targetSets,
         repRange: e.repRange,
         targetKg: e.targetKg,

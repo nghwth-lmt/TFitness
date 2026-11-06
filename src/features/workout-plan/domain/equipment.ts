@@ -101,3 +101,41 @@ export function migrateEquipmentIds(ids: readonly string[], options: { keepUnkno
 export function migrateProfile<T extends { equipment: readonly string[] }>(profile: T): T & { equipment: EquipmentId[] } {
   return { ...profile, equipment: migrateEquipmentIds(profile.equipment) };
 }
+
+/** Names shown in Setup and in the exercise details sheet. */
+export const EQUIPMENT_LABELS: Record<EquipmentId, string> = {
+  barbell: "Barbell & plates",
+  ez_bar: "EZ curl bar",
+  trap_bar: "Trap/hex bar",
+  dumbbells: "Dumbbells",
+  kettlebells: "Kettlebells",
+  plates: "Weight plates",
+  squat_rack: "Squat/power rack",
+  smith_machine: "Smith machine",
+  flat_bench: "Flat bench",
+  adjustable_bench: "Adjustable bench",
+  pull_up_bar: "Pull-up bar",
+  dip_station: "Dip station",
+  cable_station: "Cable station",
+  cable_crossover: "Cable crossover",
+  lat_pulldown: "Lat pulldown",
+  seated_row: "Seated cable row",
+  chest_press_machine: "Chest press",
+  pec_deck: "Pec deck / rear delt fly",
+  shoulder_press_machine: "Shoulder press",
+  row_machine: "Row machine",
+  assisted_pull_up: "Assisted pull-up/dip",
+  arm_machine: "Arm curl/extension machine",
+  leg_press: "Leg press",
+  hack_squat: "Hack squat",
+  leg_extension: "Leg extension",
+  leg_curl: "Leg curl",
+  hip_ab_ad: "Hip abduction/adduction",
+  calf_machine: "Calf raise machine",
+  bands: "Resistance bands",
+  suspension: "Suspension trainer",
+  medicine_ball: "Medicine ball",
+  stability_ball: "Stability ball",
+  ab_wheel: "Ab wheel",
+  plyo_box: "Plyo box",
+};

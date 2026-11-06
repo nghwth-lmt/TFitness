@@ -56,13 +56,10 @@ describe("buildPlan split by days (AC02, W10)", () => {
     expect(() => buildPlan(profile({ trainingDays: ["mon"] }), EXERCISES, 1)).toThrow(/at least 2 days/);
   });
 
-  it("clamps 7 days to the 6-day split", () => {
-    const plan = buildPlan(
-      profile({ trainingDays: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] }),
-      EXERCISES,
-      1,
-    );
-    expect(plan.split).toBe("ppl_ppl");
+  it("rejects 7 days instead of clamping (W21, see sevenDays.test.ts)", () => {
+    expect(() =>
+      buildPlan(profile({ trainingDays: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] }), EXERCISES, 1),
+    ).toThrow("Pick at most 6 days");
   });
 });
 

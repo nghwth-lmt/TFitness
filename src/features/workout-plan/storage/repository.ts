@@ -112,12 +112,14 @@ export async function logSet(db: WorkoutDb, input: LogSetInput, deps: Deps = def
 
 export type FinishResult = { session: Session; plan: Plan | undefined; newBlock: boolean };
 
-/** Completes the session, moves the loop on and starts the next block when it is due. */
+/** Completes the session (also early, W28), moves the loop on and starts the next block when it is due. */
 export async function finishSession(db: WorkoutDb, sessionId: string, deps: Deps = defaultDeps): Promise<FinishResult> {
-  return db.transaction("rw", db.sessions, db.plans, async () => {
+  return db.transaction("rw", db.sessions, db.plans, db.setLogs, async () => {
     const found = await db.sessions.get(sessionId);
     if (!found) throw new Error(`Session ${sessionId} not found`);
     if (found.status !== "in_progress") throw new Error("Session is not in progress");
+    // W28: finishing early is allowed, but only after at least one set is logged
+    if ((await db.setLogs.where("sessionId").equals(sessionId).count()) < 1) throw new Error("Log at least one set before finishing");
     const session: Session = { ...found, status: "completed", finishedAt: deps.now() };
     await db.sessions.put(session);
 

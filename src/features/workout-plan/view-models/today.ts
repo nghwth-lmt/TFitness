@@ -1,6 +1,6 @@
 import { MAX_PLACES } from "../config";
 import { EXERCISES } from "../data/exercises";
-import type { EquipmentId, Exercise, Place, Plan, Profile, RepRange, Session, SessionDraft, SetLog, Weekday } from "../domain";
+import type { EquipmentId, Exercise, ExerciseVideo, Place, Plan, Profile, RepRange, Session, SessionDraft, SetLog, Weekday } from "../domain";
 import { estimateMinutes } from "../engine/estimateMinutes";
 import { completedCount, isNewBlockStart, nextSession } from "../engine/schedule";
 import { adjustForToday } from "../engine/substitution";
@@ -119,6 +119,9 @@ export type TodayExerciseRow = {
   /** First frame for the list thumbnail; "" when the exercise is no longer in the catalog. */
   thumbnail: string;
   images: string[];
+  /** Demo clip and key points, only for exercises that have them (W47, W49). */
+  video?: ExerciseVideo;
+  cues?: string[];
   sets: number;
   repRange: RepRange;
   targetKg: number | null;
@@ -240,13 +243,16 @@ export function buildTodayVM(input: TodayInput): TodayVM {
     canAddPlace: places.length < MAX_PLACES,
     exercises: draft.exercises.map((e) => {
       const ex = catalog.find((c) => c.id === e.exerciseId);
+      const info = exerciseInfo(ex);
       return {
         exerciseId: e.exerciseId,
         slot: e.slot,
         name: ex?.name ?? e.exerciseId,
         cue: ex?.cue ?? "",
         thumbnail: ex?.images[0] ?? "",
-        images: exerciseInfo(ex).images,
+        images: info.images,
+        ...(info.video ? { video: info.video } : {}),
+        ...(info.cues ? { cues: info.cues } : {}),
         sets: e.targetSets,
         repRange: e.repRange,
         targetKg: e.targetKg,

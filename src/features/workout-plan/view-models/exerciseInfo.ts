@@ -1,6 +1,6 @@
 import { EXERCISES } from "../data/exercises";
 import { musclewikiUrl } from "../engine/musclewiki";
-import { EQUIPMENT_LABELS, type EquipmentId, type Exercise } from "../domain";
+import { EQUIPMENT_LABELS, type EquipmentId, type Exercise, type ExerciseVideo } from "../domain";
 
 export type EquipmentChip = { id: EquipmentId; label: string };
 
@@ -15,6 +15,13 @@ export type ExerciseInfo = {
   equipment: EquipmentChip[][];
   /** "Watch on MuscleWiki" link (W45). Always a musclewiki.com URL; the home page for an unknown exercise. */
   musclewikiUrl: string;
+  /**
+   * Looping demo clip (W47). Present only for exercises that have one; the others keep the two frames in `images`,
+   * which are also the fallback when the video fails or reduced motion is on (AC32). UI: muted, loop, playsinline.
+   */
+  video?: ExerciseVideo;
+  /** Three technique key points for D4 "Key points" (W49). Present exactly when `video` is. */
+  cues?: string[];
 };
 
 /** Empty detail data for an exercise id the catalog does not know (an old plan). */
@@ -30,6 +37,8 @@ export function exerciseInfo(ex: Exercise | undefined): ExerciseInfo {
     secondaryMuscles: [...ex.secondaryMuscles],
     equipment: ex.equipment.map((and) => and.map((id) => ({ id, label: EQUIPMENT_LABELS[id] }))),
     musclewikiUrl: musclewikiUrl(ex),
+    ...(ex.video ? { video: { ...ex.video } } : {}),
+    ...(ex.cues ? { cues: [...ex.cues] } : {}),
   };
 }
 

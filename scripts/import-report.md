@@ -542,3 +542,85 @@ Source: free-exercise-db snapshot 2026-11-06 (Unlicense). exercises.json sha256 
 - `Zercher_Squats` Zercher Squats: redundant variant (bucket keeps 4)
 - `Zottman_Curl` Zottman Curl: unusual or unsafe to prescribe automatically
 - `Zottman_Preacher_Curl` Zottman Preacher Curl: no two images in snapshot
+
+## Videos
+
+Source: workout-free-videos tag v2.0.0 (commit f7d8298) (CC0 1.0). data/exercises.json sha256 `36ae4f4b4eec291eb36b9917b0edc0935a1b98fbe488e605182283736853e6d6`.
+
+- Clips in the source: 57
+- Matched to an existing exercise: 27
+- Added as new exercises: 14
+- Skipped: 16
+- Videos copied: 41 files, 19.96 MB. Posters and new frames: 1.25 MB.
+
+### Matched (slug -> exercise id)
+
+| Slug | Exercise id | Name |
+|---|---|---|
+| 45-degree-leg-press-calf-raise | Calf_Press_On_The_Leg_Press_Machine | Calf Press on Leg Press Machine |
+| barbell-back-squat | Barbell_Squat | Barbell Squat |
+| barbell-hip-thrust | Barbell_Hip_Thrust | Barbell Hip Thrust |
+| barbell-upright-row | Upright_Barbell_Row | Upright Barbell Row |
+| bent-over-row | Bent_Over_Barbell_Row | Bent over Barbell Row |
+| chest-dip | Dips_-_Chest_Version | Chest Dip |
+| close-grip-bench-press | Close-Grip_Barbell_Bench_Press | Close-Grip Barbell Bench Press |
+| dumbbell-bench-press | Dumbbell_Bench_Press | Dumbbell Bench Press |
+| dumbbell-lateral-raise | Side_Lateral_Raise | Side Lateral Raise |
+| exercise-ball-leg-curl | Ball_Leg_Curl | Stability Ball Leg Curl |
+| ez-bar-skullcrusher | EZ-Bar_Skullcrusher | EZ-Bar Skull Crusher |
+| good-mornings | Good_Morning | Good Morning |
+| hip-adduction-machine | Thigh_Adductor | Hip Adduction Machine |
+| incline-bench-press | Barbell_Incline_Bench_Press_-_Medium_Grip | Barbell Incline Bench Press |
+| incline-dumbbell-curl | Incline_Dumbbell_Curl | Incline Dumbbell Curl |
+| lat-pull-down | Wide-Grip_Lat_Pulldown | Wide-Grip Lat Pulldown |
+| leg-press | Leg_Press | Leg Press |
+| machine-hack-squat | Hack_Squat | Hack Squat |
+| machine-t-bar-row | Lying_T-Bar_Row | Lying T-Bar Row |
+| military-press | Standing_Military_Press | Standing Military Press |
+| seated-cable-row | Seated_Cable_Rows | Seated Cable Row |
+| seated-calf-raise | Seated_Calf_Raise | Seated Calf Raise |
+| seated-leg-curl | Seated_Leg_Curl | Seated Leg Curl |
+| sit-up | Sit-Up | Sit-Up |
+| standing-barbell-curl | Barbell_Curl | Barbell Curl |
+| standing-machine-calf-raise | Standing_Calf_Raises | Standing Calf Raise |
+| straight-arm-lat-pull-down | Straight-Arm_Pulldown | Straight-Arm Pulldown |
+
+### Added (new exercises)
+
+| Slug | Exercise id | Name | Pattern | Role | Equipment |
+|---|---|---|---|---|---|
+| bent-over-low-pulley-rear-delt-fly | wfv_bent-over-low-pulley-rear-delt-fly | Bent-Over Cable Rear Delt Fly | horizontal_pull | accessory | cable_station |
+| cable-hip-abduction | wfv_cable-hip-abduction | Cable Hip Abduction | single_leg | accessory | cable_station |
+| exercise-ball-dumbbell-bench-press | wfv_exercise-ball-dumbbell-bench-press | Stability Ball Dumbbell Press | horizontal_push | both | dumbbells + stability_ball |
+| exercise-ball-wall-squat | wfv_exercise-ball-wall-squat | Stability Ball Wall Squat | squat | both | stability_ball |
+| lying-floor-leg-raise | wfv_lying-floor-leg-raise | Lying Leg Raise | core | accessory | none |
+| nordic-hamstring-curl | wfv_nordic-hamstring-curl | Nordic Hamstring Curl | hinge | accessory | none |
+| reverse-grip-barbell-curl | wfv_reverse-grip-barbell-curl | Reverse-Grip EZ Curl | arms | accessory | ez_bar |
+| split-stance-cable-lift | wfv_split-stance-cable-lift | Split-Stance Cable Lift | core | accessory | cable_station |
+| stiff-leg-deadlift | wfv_stiff-leg-deadlift | Stiff-Leg Deadlift | hinge | main | barbell |
+| superman | wfv_superman | Superman | hinge | accessory | none |
+| tall-kneeling-cable-chop | wfv_tall-kneeling-cable-chop | Kneeling Cable Chop | core | accessory | cable_station |
+| tall-kneeling-cable-lift | wfv_tall-kneeling-cable-lift | Kneeling Cable Lift | core | accessory | cable_station |
+| weighted-crunch | wfv_weighted-crunch | Weighted Plate Crunch | core | accessory | plates |
+| wide-grip-pull-up | wfv_wide-grip-pull-up | Wide-Grip Pull-Up | vertical_pull | both | pull_up_bar |
+
+### Skipped
+
+| Slug | Reason |
+|---|---|
+| alternating-lateral-lunge-with-overhead-reach | F1-warmup-later |
+| barbell-shrug | traps only, no movement pattern in F1 |
+| cradle-walk | F1-warmup-later |
+| deep-squat-prying | F1-warmup-later |
+| dumbbell-hammer-preacher-curl | needs a preacher bench, not in the F1 gear list |
+| dumbbell-shrug | traps only, no movement pattern in F1 |
+| fire-hydrant-circles | F1-warmup-later |
+| hyperextension | needs a back-extension bench, not in the F1 gear list |
+| it-band-foam-rolling | F1-warmup-later |
+| kneeling-posterior-hip-capsule-mobilization | F1-warmup-later |
+| neck-tiger-tail | F1-warmup-later |
+| palmar-fascia-lacrosse-ball | F1-warmup-later |
+| plantar-fascia-lacrosse-ball | F1-warmup-later |
+| plate-pinch-carry | grip carry has no movement pattern in F1 |
+| seated-barbell-wrist-curl | wrist and forearm work has no movement pattern in F1 |
+| weighted-tricep-dips | needs a dip belt, not in the F1 gear list |

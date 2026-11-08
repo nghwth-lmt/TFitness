@@ -9,9 +9,9 @@ const publicDir = path.resolve(__dirname, "../../../../public");
 const MAIN: Pattern[] = ["squat", "hinge", "horizontal_push", "horizontal_pull", "vertical_push", "vertical_pull"];
 
 describe("catalog shape (W30)", () => {
-  it("is the imported catalog: 200 to 300 exercises, unique ids, valid vocabulary", () => {
+  it("is the imported catalog: 200 to 320 exercises, unique ids, valid vocabulary", () => {
     expect(EXERCISES.length).toBeGreaterThanOrEqual(200);
-    expect(EXERCISES.length).toBeLessThanOrEqual(300);
+    expect(EXERCISES.length).toBeLessThanOrEqual(320);
     expect(new Set(EXERCISES.map((e) => e.id)).size).toBe(EXERCISES.length);
     for (const e of EXERCISES) {
       expect(PATTERNS, e.id).toContain(e.pattern);

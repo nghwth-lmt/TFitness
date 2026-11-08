@@ -113,6 +113,23 @@ export type ExerciseDetails = {
   instructions: string[];
   primaryMuscles: string[];
   secondaryMuscles: string[];
+  /** Looping demo clip (W47). Absent for exercises without one; those keep the two frames. */
+  video?: ExerciseVideo;
+  /** Three technique key points from the video source (W49). Present exactly when `video` is. */
+  cues?: string[];
+};
+
+/** A demo clip served from /videos/ (W47): muted 720p loop of 4 to 8 seconds, plus its first frame as poster. */
+export type ExerciseVideo = {
+  /** e.g. /videos/barbell-back-squat.mp4 */
+  path: string;
+  /** First frame, e.g. /videos/barbell-back-squat.webp. Shown when the video cannot play. */
+  poster: string;
+  /** sha256 of the mp4, equal to the source's. */
+  sha256: string;
+  durationSec: number;
+  width: number;
+  height: number;
 };
 
 export type RepRange = { min: number; max: number };

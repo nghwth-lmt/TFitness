@@ -296,3 +296,8 @@ export function standardName(id, name) {
     .map((w, i, arr) => (i > 0 && arr[i - 1] !== "-" && SMALL_WORDS.has(w.toLowerCase()) ? w.toLowerCase() : w))
     .join(" ");
 }
+
+/** Display order of equipment ids inside an AND list and in the coverage tables (PRD 6.1). */
+export const EQUIPMENT_ORDER = [
+  "barbell", "ez_bar", "trap_bar", "dumbbells", "kettlebells", "plates", "squat_rack", "smith_machine", "flat_bench", "adjustable_bench", "pull_up_bar", "dip_station", "cable_station", "cable_crossover", "lat_pulldown", "seated_row", "chest_press_machine", "pec_deck", "shoulder_press_machine", "row_machine", "assisted_pull_up", "arm_machine", "leg_press", "hack_squat", "leg_extension", "leg_curl", "hip_ab_ad", "calf_machine", "bands", "suspension", "medicine_ball", "stability_ball", "ab_wheel", "plyo_box",
+];

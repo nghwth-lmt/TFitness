@@ -31,10 +31,9 @@ const snapshotDate = /(\d{4}-\d{2}-\d{2})/.exec(path.basename(srcDir))?.[1];
 if (!snapshotDate) throw new Error("Snapshot folder name must contain its date, e.g. free-exercise-db-2026-11-06");
 const source_ = JSON.parse(raw.toString("utf8"));
 
-const EQUIPMENT_ORDER = [
-  "barbell", "ez_bar", "trap_bar", "dumbbells", "kettlebells", "plates", "squat_rack", "smith_machine", "flat_bench", "adjustable_bench", "pull_up_bar", "dip_station", "cable_station", "cable_crossover", "lat_pulldown", "seated_row", "chest_press_machine", "pec_deck", "shoulder_press_machine", "row_machine", "assisted_pull_up", "arm_machine", "leg_press", "hack_squat", "leg_extension", "leg_curl", "hip_ab_ad", "calf_machine", "bands", "suspension", "medicine_ball", "stability_ball", "ab_wheel", "plyo_box",
-];
+const EQUIPMENT_ORDER = M.EQUIPMENT_ORDER;
 
+const VIDEO_ID_PREFIX = "wfv_";
 const lc = (s) => s.toLowerCase();
 const cmp = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
 const imgPath = (id, i) => path.join(srcDir, "images", id, `${i}.webp`);
@@ -183,7 +182,8 @@ excluded.sort((a, b) => cmp(a.id, b.id));
 const outImages = path.join(outRoot, "public", "exercises");
 const keep = new Set(included.map((e) => e.id));
 fs.mkdirSync(outImages, { recursive: true });
-for (const dir of fs.readdirSync(outImages)) if (!keep.has(dir)) fs.rmSync(path.join(outImages, dir), { recursive: true, force: true });
+// wfv_* folders belong to scripts/import-videos.mjs, which runs after this importer.
+for (const dir of fs.readdirSync(outImages)) if (!keep.has(dir) && !dir.startsWith(VIDEO_ID_PREFIX)) fs.rmSync(path.join(outImages, dir), { recursive: true, force: true });
 let imageBytes = 0;
 for (const e of included) {
   fs.mkdirSync(path.join(outImages, e.id), { recursive: true });
@@ -243,5 +243,10 @@ for (const [r, n] of [...reasons].sort((a, b) => b[1] - a[1] || cmp(a[0], b[0]))
 lines.push("", "## Excluded exercises (strength and powerlifting candidates only)", "");
 for (const e of excluded.filter((x) => !x.reason.startsWith("category "))) lines.push(`- \`${e.id}\` ${e.name}: ${e.reason}`);
 fs.mkdirSync(path.join(outRoot, "scripts"), { recursive: true });
-fs.writeFileSync(path.join(outRoot, "scripts/import-report.md"), lines.join("\n") + "\n");
+// The "Videos" section is written by scripts/import-videos.mjs; keep it so the two importers can run in either order.
+const reportPath = path.join(outRoot, "scripts/import-report.md");
+const previous = fs.existsSync(reportPath) ? fs.readFileSync(reportPath, "utf8") : "";
+const videosAt = previous.search(/(^|\n)## Videos\n/);
+const videosSection = videosAt >= 0 ? previous.slice(previous[videosAt] === "\n" ? videosAt + 1 : videosAt) : "";
+fs.writeFileSync(reportPath, lines.join("\n") + "\n" + (videosSection ? "\n" + videosSection : ""));
 console.log(`imported ${included.length}, excluded ${excluded.length}, images ${(imageBytes / 1048576).toFixed(2)} MB`);

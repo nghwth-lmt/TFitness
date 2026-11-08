@@ -129,7 +129,11 @@ describe("exercise importer (WL-11)", () => {
     const repo = path.resolve(__dirname, "../../../..");
     const rel = "src/features/workout-plan/data/exercises.generated.ts";
     expect(fs.readFileSync(path.join(out, rel), "utf8")).toBe(fs.readFileSync(path.join(repo, rel), "utf8"));
-    expect(fs.readFileSync(path.join(out, "scripts/import-report.md"), "utf8")).toBe(fs.readFileSync(path.join(repo, "scripts/import-report.md"), "utf8"));
+    // The "Videos" section belongs to scripts/import-videos.mjs; everything before it is this importer's.
+    const committed = fs.readFileSync(path.join(repo, "scripts/import-report.md"), "utf8");
+    const videosAt = committed.indexOf("\n## Videos\n");
+    const exercisesPart = videosAt >= 0 ? committed.slice(0, videosAt).replace(/\n+$/, "") : committed.replace(/\n+$/, "");
+    expect(fs.readFileSync(path.join(out, "scripts/import-report.md"), "utf8").replace(/\n+$/, "")).toBe(exercisesPart);
   });
 
   describe("standard names (W36)", () => {
